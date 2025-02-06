@@ -191,8 +191,8 @@ castMemberDetailsDecoder =
             )
         |> required "biography" string
         |> required "gender" genderDecoder
-        |> required "birthday" string
-        |> required "place_of_birth" string
+        |> optional "birthday" (Json.Decode.nullable string) Nothing
+        |> optional "place_of_birth" (Json.Decode.nullable string) Nothing
         |> optional "deathday" (Json.Decode.nullable string) Nothing
 
 

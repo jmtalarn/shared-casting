@@ -7,6 +7,7 @@ import Msg exposing (..)
 type alias Model =
     { greeting : String
     , targetMovieIndex : Maybe MovieIndex
+    , openedDialog : Maybe String
     , query : Maybe String
     , debounceTask : Maybe (Cmd Msg)
     , searchResult : Maybe (List MovieTvShow)

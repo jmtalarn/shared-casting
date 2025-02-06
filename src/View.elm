@@ -38,14 +38,22 @@ showCast cast =
         )
 
 
-mediaTypeLabel : MediaType -> String
-mediaTypeLabel mediaType =
+mediaTypeLabel : MediaType -> Bool -> String
+mediaTypeLabel mediaType parenthesis =
     case mediaType of
         Tv ->
-            " (TV Show)"
+            if parenthesis then
+                " (TV Show)"
+
+            else
+                " TV show"
 
         Movie ->
-            " (Movie)"
+            if parenthesis then
+                " (Movie)"
+
+            else
+                " movie"
 
 
 showMovie : MovieIndex -> Maybe MovieTvShow -> Maybe Details -> List (Html Msg)
@@ -80,7 +88,7 @@ showMovie movieIndex maybeMovieTvShow maybeDetails =
                                 [ css [ color theme.colors.text ] ]
                                 [ span [] [ text movieTvShow.year ]
                                 , span [ css [ fontSize (px 12), color theme.colors.textMuted ] ]
-                                    [ text <| mediaTypeLabel movieTvShow.mediaType
+                                    [ text <| mediaTypeLabel movieTvShow.mediaType True
                                     ]
                                 ]
                             , div
@@ -334,7 +342,7 @@ viewItem item =
                         , div [ css [ marginBottom (px 8) ] ]
                             [ span [] [ text item.year ]
                             , span [ css [ fontSize (px 12) ] ]
-                                [ text <| mediaTypeLabel item.mediaType
+                                [ text <| mediaTypeLabel item.mediaType True
                                 ]
                             ]
 
@@ -380,7 +388,7 @@ showSharedCastMember member ( maybeFirstMovieTvShow, maybeSecondMovieTvShow ) ( 
         firstMovieTitle =
             firstMovie.title
                 ++ (if showMediaType then
-                        " " ++ mediaTypeLabel firstMovie.mediaType
+                        " " ++ mediaTypeLabel firstMovie.mediaType True
 
                     else
                         ""
@@ -389,7 +397,7 @@ showSharedCastMember member ( maybeFirstMovieTvShow, maybeSecondMovieTvShow ) ( 
         secondMovieTitle =
             secondMovie.title
                 ++ (if showMediaType then
-                        " " ++ mediaTypeLabel secondMovie.mediaType
+                        " " ++ mediaTypeLabel secondMovie.mediaType True
 
                     else
                         ""
@@ -542,7 +550,7 @@ showCastSection ( maybeFirstMovieTvShow, maybeSecondMovieTvShow ) ( maybeFirstDe
         firstMovieTitle =
             firstMovieTvShow.title
                 ++ (if showMediaType then
-                        " " ++ mediaTypeLabel firstMovieTvShow.mediaType
+                        " " ++ mediaTypeLabel firstMovieTvShow.mediaType True
 
                     else
                         ""
@@ -551,7 +559,7 @@ showCastSection ( maybeFirstMovieTvShow, maybeSecondMovieTvShow ) ( maybeFirstDe
         secondMovieTitle =
             secondMovieTvShow.title
                 ++ (if showMediaType then
-                        " " ++ mediaTypeLabel secondMovieTvShow.mediaType
+                        " " ++ mediaTypeLabel secondMovieTvShow.mediaType True
 
                     else
                         ""
@@ -603,9 +611,6 @@ sharedCastMembers listA listB =
 
         secondCast =
             List.filter (\castMember -> not (List.any (\sharedMember -> sharedMember.id == castMember.id) shared)) listB
-
-        _ =
-            Debug.log "shared" shared
     in
     ( shared, firstCast, secondCast )
 
@@ -613,6 +618,11 @@ sharedCastMembers listA listB =
 hintText : String
 hintText =
     "Click to search for a movie or a TV Show"
+
+
+hintMiniText : MediaType -> String
+hintMiniText mediaType =
+    "Click to search for this " ++ mediaTypeLabel mediaType False
 
 
 movieTvShowCover : MovieIndex -> Maybe MovieTvShow -> Html Msg
@@ -762,10 +772,6 @@ mainStyle =
 
 dialogCastMemberDetails : Model -> Html Msg
 dialogCastMemberDetails model =
-    let
-        maybeCastMember =
-            model.castMemberDetails
-    in
     section []
         [ node "dialog"
             [ css
@@ -827,120 +833,11 @@ dialogCastMemberDetails model =
                             (Phosphor.x Regular |> Phosphor.toHtml [ Html.Attributes.style "width" "36px", Html.Attributes.style "height" "36px" ])
                         ]
                     ]
-                , div
-                    [ css
-                        [ displayFlex
-                        , alignItems center
-                        , flexDirection row
-                        , minHeight (px 64)
-                        , flexWrap Css.wrap
-                        , justifyContent center
-
-                        --, padding (px 64)
-                        , maxHeight <| Css.calc (vh 90) minus (calc (px 64) plus (px 64))
-                        , overflow auto
-                        , minHeight (vh 70)
-                        ]
-                    ]
-                    (case maybeCastMember of
-                        Nothing ->
-                            []
-
-                        Just castMember ->
-                            [ div
-                                [ css
-                                    [ flex3 (int 1) (int 1) (pct 50) --flex3 (int 0) (int 1) (px 500)
-                                    , Css.height (pct 100)
-                                    , maxWidth (px 670)
-                                    ]
-                                ]
-                                [ Html.Styled.fromUnstyled <| Html.map ImageGalleryMsg <| Gallery.view imageConfig model.imageGallery [ Gallery.Arrows ] (imageSlides castMember.images)
-                                ]
-                            , div [ css [ flex3 (int 1) (int 1) (px 400) ] ]
-                                ([ h2 []
-                                    [ text
-                                        (castMember.name
-                                            ++ (if castMember.name == castMember.original_name then
-                                                    ""
-
-                                                else
-                                                    " (" ++ castMember.original_name ++ ")"
-                                               )
-                                        )
-                                    ]
-                                 , p [] [ text castMember.biography ]
-                                 , span
-                                    [ css [ color theme.colors.primary ] ]
-                                    [ Html.Styled.fromUnstyled
-                                        ((case castMember.gender of
-                                            Male ->
-                                                Phosphor.genderMale
-
-                                            Female ->
-                                                Phosphor.genderFemale
-
-                                            NonBinary ->
-                                                Phosphor.genderNonbinary
-
-                                            NotSpecified ->
-                                                Phosphor.maskHappy
-                                         )
-                                            Duotone
-                                            |> Phosphor.toHtml
-                                                [ Html.Attributes.style "margin" "8px"
-                                                , Html.Attributes.style "width" "24px"
-                                                , Html.Attributes.style "height" "24px"
-                                                ]
-                                        )
-                                    ]
-                                 , div
-                                    [ css
-                                        [ color theme.colors.primary ]
-                                    ]
-                                    [ Html.Styled.fromUnstyled
-                                        (Phosphor.cake Duotone
-                                            |> Phosphor.toHtml
-                                                [ Html.Attributes.style "margin" "8px"
-                                                , Html.Attributes.style "width" "24px"
-                                                , Html.Attributes.style "height" "24px"
-                                                ]
-                                        )
-                                    , span []
-                                        [ text castMember.birthday
-                                        ]
-                                    , span [] [ text castMember.place_of_birth ]
-                                    ]
-                                 ]
-                                    ++ (case castMember.deathday of
-                                            Nothing ->
-                                                []
-
-                                            Just deathday ->
-                                                [ div
-                                                    [ css
-                                                        [ color theme.colors.primary ]
-                                                    ]
-                                                    [ Html.Styled.fromUnstyled
-                                                        (Phosphor.cake Duotone
-                                                            |> Phosphor.toHtml
-                                                                [ Html.Attributes.style "margin" "8px"
-                                                                , Html.Attributes.style "width" "24px"
-                                                                , Html.Attributes.style "height" "24px"
-                                                                ]
-                                                        )
-                                                    , span []
-                                                        [ text deathday ]
-                                                    ]
-                                                ]
-                                       )
-                                )
-                            ]
-                    )
                 , case model.error of
                     Just errorMessage ->
                         div
                             [ css
-                                [ minHeight (px 64), padding (px 64), maxHeight <| Css.calc (vh 90) minus (calc (px 64) plus (px 64)), overflow auto ]
+                                [ minHeight (px 64), padding (px 64), maxHeight <| Css.calc (vh 90) minus (px 64), overflow auto ]
                             ]
                             [ h3 [ css [ color theme.colors.error, textAlign center ] ] [ text "Error" ]
                             , p
@@ -950,10 +847,289 @@ dialogCastMemberDetails model =
                             ]
 
                     Nothing ->
-                        div [ css [ minHeight (Css.px 64), Css.maxHeight <| Css.calc (Css.vh 90) minus (calc (Css.px 64) plus (Css.px 64)), overflowY auto ] ] [ showResults model.searchResult ]
+                        div [ css [ minHeight (Css.px 64), Css.maxHeight <| Css.calc (Css.vh 90) minus (calc (Css.px 64) plus (Css.px 64)), overflowY auto ] ] <| showCastMemberDetails model
                 ]
             ]
         ]
+
+
+showCastMemberDetails : Model -> List (Html Msg)
+showCastMemberDetails model =
+    let
+        maybeCastMember =
+            model.castMemberDetails
+
+        nameHeight =
+            px 42
+
+        additionalInfoHeight =
+            px 32
+
+        additionalInfoCss =
+            [ color theme.colors.primary
+            , Css.height additionalInfoHeight
+            , displayFlex
+            , alignItems center
+            , Css.property "gap" "8px"
+            ]
+    in
+    [ div
+        [ css
+            [ displayFlex
+            , alignItems Css.start
+            , flexDirection row
+            , minHeight (px 64)
+            , flexWrap Css.wrap
+            , justifyContent center
+            , overflow auto
+            ]
+        ]
+        (case maybeCastMember of
+            Nothing ->
+                []
+
+            Just castMember ->
+                [ div
+                    [ css
+                        [ flex3 (int 0) (int 0) (px imageGalleryWidth) --flex3 (int 0) (int 1) (px 500),
+                        , Css.height (pct 100)
+                        , Css.width (px 300)
+                        , marginBottom (px 48)
+                        ]
+                    ]
+                    [ Html.Styled.fromUnstyled <| Html.map ImageGalleryMsg <| Gallery.view imageConfig model.imageGallery [ Gallery.Arrows ] (imageSlides castMember.images)
+                    ]
+                , div [ css [ flex3 (int 1) (int 1) (px 450), Css.padding2 (px 0) (px 16) ] ]
+                    [ header [ css [ displayFlex, Css.height nameHeight, marginLeft (px 8) ] ]
+                        [ h2 [ css [] ]
+                            [ text
+                                (castMember.name
+                                    ++ (if castMember.name == castMember.original_name then
+                                            ""
+
+                                        else
+                                            " (" ++ castMember.original_name ++ ")"
+                                       )
+                                )
+                            ]
+                        , div
+                            [ css additionalInfoCss ]
+                            [ Html.Styled.fromUnstyled
+                                ((case castMember.gender of
+                                    Male ->
+                                        Phosphor.genderMale
+
+                                    Female ->
+                                        Phosphor.genderFemale
+
+                                    NonBinary ->
+                                        Phosphor.genderNonbinary
+
+                                    NotSpecified ->
+                                        Phosphor.maskHappy
+                                 )
+                                    Duotone
+                                    |> Phosphor.toHtml
+                                        [ Html.Attributes.style "margin" "8px"
+                                        , Html.Attributes.style "width" "24px"
+                                        , Html.Attributes.style "height" "24px"
+                                        ]
+                                )
+                            ]
+                        ]
+                    , div
+                        [ css additionalInfoCss ]
+                        (case castMember.birthday of
+                            Nothing ->
+                                []
+
+                            Just birthday ->
+                                [ Html.Styled.fromUnstyled
+                                    (Phosphor.cake Duotone
+                                        |> Phosphor.toHtml
+                                            [ Html.Attributes.style "margin" "8px"
+                                            , Html.Attributes.style "width" "24px"
+                                            , Html.Attributes.style "height" "24px"
+                                            ]
+                                    )
+                                , span []
+                                    [ text birthday
+                                    ]
+                                , span [] [ text <| Maybe.withDefault "" castMember.place_of_birth ]
+                                ]
+                        )
+                    , div
+                        [ css additionalInfoCss ]
+                        (case castMember.deathday of
+                            Nothing ->
+                                []
+
+                            Just deathday ->
+                                [ Html.Styled.fromUnstyled
+                                    (Phosphor.cross Duotone
+                                        |> Phosphor.toHtml
+                                            [ Html.Attributes.style "margin" "8px"
+                                            , Html.Attributes.style "width" "24px"
+                                            , Html.Attributes.style "height" "24px"
+                                            ]
+                                    )
+                                , span [] [ text deathday ]
+                                ]
+                        )
+                    , div
+                        [ css
+                            [ maxHeight <|
+                                calc (px imageGalleryHeight)
+                                    minus
+                                    (calc nameHeight
+                                        plus
+                                        (calc
+                                            (calc additionalInfoHeight
+                                                plus
+                                                (case castMember.deathday of
+                                                    Just _ ->
+                                                        additionalInfoHeight
+
+                                                    Nothing ->
+                                                        px 0
+                                                )
+                                            )
+                                            plus
+                                            (px 48)
+                                         --margin
+                                        )
+                                    )
+                            , overflow auto
+                            , margin2 (px 24) (px 8)
+                            ]
+                        ]
+                        [ p
+                            [ css [ lineHeight (rem 1.6), paddingRight (px 24) ] ]
+                            [ text castMember.biography ]
+                        ]
+                    ]
+                ]
+        )
+    , div [ css [ displayFlex, flexWrap Css.wrap, Css.property "gap" "4px", padding2 (px 0) (px 24) ] ]
+        (case maybeCastMember of
+            Nothing ->
+                []
+
+            Just castMember ->
+                List.map
+                    (\( movieTvShow, character ) ->
+                        div [ css [ Css.width (px 120) ] ]
+                            [ movieTvShowMiniCover movieTvShow
+                            , div [ css [ fontSize Css.small, fontWeight bold ] ] [ text movieTvShow.title ]
+                            , div [ css [ fontSize Css.small ] ] [ formatCharacter character Nothing ]
+                            ]
+                    )
+                    castMember.cast
+        )
+    ]
+
+
+movieTvShowMiniCover : MovieTvShow -> Html Msg
+movieTvShowMiniCover movieTvShow =
+    let
+        defaultCover =
+            VitePluginHelper.asset "/src/assets/generic-cinema.jpg"
+
+        cover =
+            case Tuple.first movieTvShow.images of
+                Just url ->
+                    url
+
+                Nothing ->
+                    defaultCover
+    in
+    div [ css [ displayFlex, alignItems center, justifyContent center ] ]
+        [ div
+            [ css
+                [ cursor pointer
+                , borderRadius (px 4)
+                , borderStyle none
+                , Css.width (px 120)
+
+                --, Css.height (px 330)
+                , position relative
+                , flexShrink (int 0)
+                , hover
+                    [ Css.Global.descendants
+                        [ Css.Global.typeSelector "img"
+                            [ Css.Global.withClass "cover"
+                                [ transform (scale 1.2)
+                                , Css.property "filter" "brightness(0.50)"
+                                ]
+                            ]
+                        , Css.Global.typeSelector "div"
+                            [ Css.Global.withClass "hint"
+                                [ opacity (num 1)
+                                , transform (scale 1)
+                                ]
+                            ]
+                        ]
+                    , zIndex (int 3)
+                    ]
+                ]
+            , title hintText
+            , onClick (SelectItem movieTvShow)
+            ]
+            [ img
+                [ class "cover"
+                , src <| cover
+                , css
+                    [ borderRadius (px 4)
+                    , transform (scale 1)
+                    , transition
+                        [ Css.Transitions.transform3 300 0 ease
+                        , Css.Transitions.filter3 300 0 ease
+                        ]
+                    ]
+                ]
+                []
+            , div
+                [ class "hint"
+                , css
+                    (theme.fonts.body
+                        ++ [ position absolute
+                           , displayFlex
+                           , flexDirection column
+                           , alignItems center
+                           , fontWeight bold
+                           , Css.width (pct 100)
+                           , Css.height (pct 100)
+                           , top (px 0)
+                           , transform (scale 0)
+                           , opacity (num 0)
+                           , transition
+                                [ Css.Transitions.opacity3 300 0 ease
+                                , Css.Transitions.transform3 300 0 ease
+                                ]
+                           ]
+                    )
+                ]
+                [ Html.Styled.fromUnstyled
+                    (Phosphor.magnifyingGlass Duotone
+                        |> Phosphor.toHtml
+                            [ Html.Attributes.style "width" "80%"
+                            , Html.Attributes.style "height" "80%"
+                            , Html.Attributes.style "margin" "0 auto"
+                            , Html.Attributes.style "color" "white"
+                            ]
+                    )
+                , p [ css [ color Colors.white ] ] [ text <| hintMiniText movieTvShow.mediaType ]
+                ]
+            ]
+        ]
+
+
+imageGalleryWidth =
+    450
+
+
+imageGalleryHeight =
+    500
 
 
 imageConfig : Gallery.Config
@@ -961,8 +1137,8 @@ imageConfig =
     Gallery.config
         { id = "image-gallery"
         , transition = 500
-        , width = Gallery.pct 100
-        , height = Gallery.vh 70
+        , width = Gallery.px imageGalleryWidth
+        , height = Gallery.px imageGalleryHeight
         }
 
 

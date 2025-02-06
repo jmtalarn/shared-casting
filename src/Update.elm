@@ -60,7 +60,14 @@ update msg model =
                         , error = Nothing
                     }
             in
-            ( cleanDialogData updatedModel, toggleDialog ("#" ++ dialogMovieSearchId) )
+            ( cleanDialogData updatedModel
+            , case model.openedDialog of
+                Just id ->
+                    toggleDialog ("#" ++ id)
+
+                Nothing ->
+                    Cmd.none
+            )
 
         ReceiveDetails movieIndex (Err err) ->
             ( { model
@@ -96,6 +103,7 @@ update msg model =
         ShowSearch movieIndex ->
             ( { model
                 | targetMovieIndex = Just movieIndex
+                , openedDialog = Just dialogMovieSearchId
               }
             , Cmd.batch [ toggleDialog ("#" ++ dialogMovieSearchId), Task.attempt (\_ -> NoOp) (Dom.focus dialogMovieSearchInputId) ]
             )
@@ -150,6 +158,9 @@ update msg model =
 
         SelectItem movie ->
             let
+                currentIndex =
+                    model.targetMovieIndex
+
                 updatedModel =
                     { model
                         | movies =
@@ -162,10 +173,19 @@ update msg model =
 
                                 Nothing ->
                                     model.movies
-                        , targetMovieIndex = Nothing
+                        , targetMovieIndex =
+                            case model.targetMovieIndex of
+                                Just First ->
+                                    Just Second
+
+                                _ ->
+                                    Just First
                     }
+
+                _ =
+                    Debug.log "targetMovieIndex" currentIndex
             in
-            case model.targetMovieIndex of
+            case currentIndex of
                 Just index ->
                     ( updatedModel, fetchDetails index movie )
 
@@ -173,7 +193,7 @@ update msg model =
                     ( model, Cmd.none )
 
         ShowCastMember id ->
-            ( model, fetchCastMemberDetails <| String.fromInt id )
+            ( { model | openedDialog = Just dialogCastMemberDetailsId }, fetchCastMemberDetails <| String.fromInt id )
 
         ImageGalleryMsg imageGalleryMsg ->
             ( { model | imageGallery = Gallery.update imageGalleryMsg model.imageGallery }
@@ -186,7 +206,9 @@ cleanDialogData model =
     { model
         | query = Nothing
         , searchResult = Nothing
-        , targetMovieIndex = Nothing
+        , openedDialog = Nothing
+
+        --, targetMovieIndex = Nothing
         , castMemberDetails = Nothing
         , error = Nothing
     }
