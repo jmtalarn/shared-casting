@@ -5,7 +5,7 @@ export const config: Config = {
 };
 
 const buildUrl = ({ type, id }: { type: "movie" | "tv", id: string }) =>
-	`https://api.themoviedb.org/3/${type}/${id}?language=en-US&append_to_response=credits`;
+	`https://api.themoviedb.org/3/${type}/${id}?language=en-US&append_to_response=${type === "movie" ? 'credits' : 'aggregate_credits'}`;
 
 const options = {
 	method: "GET",

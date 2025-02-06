@@ -5,7 +5,7 @@ export const config: Config = {
 };
 
 const buildUrl = ({ id }: { id: string }) =>
-	`https://api.themoviedb.org/3/person/${id}?append_to_response=images%2Ccombined_credits&language=en-US`;
+	`https://api.themoviedb.org/3/person/${id}?append_to_response=images%2Ctranslations%2Ccombined_credits&language=en-US`;
 
 const options = {
 	method: "GET",
