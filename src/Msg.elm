@@ -59,8 +59,8 @@ type alias CastMemberDetails =
     , cast : List ( MovieTvShow, String )
     , biography : String
     , gender : Gender
-    , birthday : String
-    , place_of_birth : String
+    , birthday : Maybe String
+    , place_of_birth : Maybe String
     , deathday : Maybe String
     }
 
