@@ -25,3 +25,10 @@ app.ports.toggleDialog.subscribe((dialogSelector) => {
 		}
 	}
 });
+
+app.ports.scroll.subscribe(function ([elementId, amount]) {
+	const el = document.getElementById(elementId);
+	if (el) {
+		el.scrollBy({ left: amount, behavior: "smooth" });
+	}
+});

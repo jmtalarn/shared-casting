@@ -82,9 +82,7 @@ type MovieIndex
 
 
 type Msg
-    = Hello
-    | Goodbye
-    | ShowSearch MovieIndex
+    = ShowSearch MovieIndex
     | ReceiveResults (Result Http.Error (List MovieTvShow))
     | ReceiveDetails MovieIndex (Result Http.Error Details)
     | ShowCastMember Int
