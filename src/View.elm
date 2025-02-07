@@ -347,7 +347,20 @@ viewItem item =
                             ]
 
                         -- , div [ css [] ] (List.map (\imgSvg -> img [ src imgSvg.logo ] []) item.networks)
-                        , p [ css [ marginTop (px 8), color theme.colors.textMuted, fontSize (px 12), maxWidth (px 480), marginTop auto, marginBottom (px 32) ] ] [ text item.description ]
+                        , p
+                            [ css
+                                [ marginTop (px 8)
+                                , color theme.colors.textMuted
+                                , fontSize (px 12)
+                                , maxWidth (px 480)
+                                , Css.width (px 480)
+
+                                --, Css.minWidth (px 480)
+                                , marginTop auto
+                                , marginBottom (px 32)
+                                ]
+                            ]
+                            [ text item.description ]
                         ]
                     ]
                 ]
@@ -474,6 +487,7 @@ showCastMemberView castMember characters =
                     (px 72)
                  , Css.height (px 72)
                  , overflow Css.hidden
+                 , flexShrink (int 0)
                  ]
                     ++ backgroundImagePath
                 )
@@ -496,7 +510,12 @@ showCastSection ( maybeFirstMovieTvShow, maybeSecondMovieTvShow ) ( maybeFirstDe
             css
                 ([ minWidth (px 220)
                  , maxWidth (px 480)
+                 , Css.width (px 480)
+
+                 --, Css.minWidth (px 480)
                  , marginBottom (rem 2)
+
+                 --, flex3 (int 1) (int 1) (px 480)
                  ]
                     ++ Maybe.withDefault [] additionalCss
                 )
@@ -522,8 +541,10 @@ showCastSection ( maybeFirstMovieTvShow, maybeSecondMovieTvShow ) ( maybeFirstDe
                     [ showCastColumnStyles Nothing
                     ]
                     (if not <| List.isEmpty cast then
-                        [ h3 [ css [ Css.height (px 58) ] ] [ text ("Cast for " ++ title) ]
-                        , showCast cast
+                        [ div [ css [ padding (px 8) ] ]
+                            [ h3 [ css [ Css.height (px 58) ] ] [ text ("Cast for " ++ title) ]
+                            , showCast cast
+                            ]
                         ]
 
                      else
@@ -536,7 +557,11 @@ showCastSection ( maybeFirstMovieTvShow, maybeSecondMovieTvShow ) ( maybeFirstDe
                     [ showCastColumnStyles (Just [ maxWidth (pct 100) ])
                     ]
                     (if not <| List.isEmpty sharedCastC then
-                        [ h3 [ css [ Css.height (px 58) ] ] [ text ("Cast for " ++ title) ]
+                        [ h3 [ css [ Css.height (px 58) ] ]
+                            [ text <|
+                                "Cast for "
+                                    ++ title
+                            ]
                         , showSharedCast sharedCastC ( maybeFirstMovieTvShowC, maybeSecondMovieTvShowC ) ( maybeFirstDetailsC, maybeSecondDetailsC )
                         ]
 
@@ -567,14 +592,14 @@ showCastSection ( maybeFirstMovieTvShow, maybeSecondMovieTvShow ) ( maybeFirstDe
 
         firstColumn =
             if List.isEmpty firstCast then
-                []
+                [ div [ showCastColumnStyles Nothing ] [] ]
 
             else
                 [ showCastColumn firstCast firstMovieTitle ]
 
         secondColumn =
             if List.isEmpty secondCast then
-                []
+                [ div [ showCastColumnStyles Nothing ] [] ]
 
             else
                 [ showCastColumn secondCast secondMovieTitle ]
@@ -590,11 +615,7 @@ showCastSection ( maybeFirstMovieTvShow, maybeSecondMovieTvShow ) ( maybeFirstDe
             )
         , div
             [ css
-                [ displayFlex
-                , flexWrap Css.wrap
-                , justifyContent spaceAround
-                , Css.property "gap" "1rem"
-                ]
+                twoColumnsCssLayout
             ]
             (firstColumn ++ secondColumn)
         ]
@@ -622,7 +643,7 @@ hintText =
 
 hintMiniText : MediaType -> String
 hintMiniText mediaType =
-    "Click to search for this " ++ mediaTypeLabel mediaType False
+    "Select this " ++ mediaTypeLabel mediaType False
 
 
 movieTvShowCover : MovieIndex -> Maybe MovieTvShow -> Html Msg
@@ -770,6 +791,17 @@ mainStyle =
         ]
 
 
+twoColumnsCssLayout : List Style
+twoColumnsCssLayout =
+    [ displayFlex
+    , flexWrap Css.wrap
+    , justifyContent spaceAround
+    , Css.property "gap" "1rem"
+    , maxWidth (calc (px 960) plus (rem 1))
+    , margin2 (px 0) auto
+    ]
+
+
 dialogCastMemberDetails : Model -> Html Msg
 dialogCastMemberDetails model =
     section []
@@ -897,8 +929,12 @@ showCastMemberDetails model =
                         , marginBottom (px 48)
                         ]
                     ]
-                    [ Html.Styled.fromUnstyled <| Html.map ImageGalleryMsg <| Gallery.view imageConfig model.imageGallery [ Gallery.Arrows ] (imageSlides castMember.images)
-                    ]
+                    (if List.isEmpty castMember.images then
+                        []
+
+                     else
+                        [ Html.Styled.fromUnstyled <| Html.map ImageGalleryMsg <| Gallery.view imageConfig model.imageGallery [ Gallery.Arrows ] (imageSlides castMember.images) ]
+                    )
                 , div [ css [ flex3 (int 1) (int 1) (px 450), Css.padding2 (px 0) (px 16) ] ]
                     [ header [ css [ displayFlex, Css.height nameHeight, marginLeft (px 8) ] ]
                         [ h2 [ css [] ]
@@ -1010,19 +1046,20 @@ showCastMemberDetails model =
                     ]
                 ]
         )
-    , div [ css [ displayFlex, alignItems baseline, justifyContent spaceAround ] ]
+    , div [ css [ displayFlex, alignItems baseline, justifyContent spaceAround, marginBottom (px 32) ] ]
         [ miniCoverButton Backward
         , div
             [ css
                 [ displayFlex
 
                 --, flexWrap Css.wrap
-                , Css.property "gap" "8px"
-                , padding2 (px 0) (px 24)
+                , Css.property "gap" "16px"
 
+                --, padding2 (px 0) (px 24)
                 -- , justifyContent center
                 , maxWidth (pct 85)
-                , overflow auto
+                , padding2 (px 24) (px 16)
+                , overflow Css.hidden
                 ]
             , id castMemberDetailsAlsoInId
             ]
@@ -1066,7 +1103,7 @@ miniCoverButton direction =
         [ css
             [ backgroundColor Colors.transparent
             , borderStyle none
-            , color theme.colors.error
+            , color theme.colors.primary
             , cursor pointer
             , margin (px 10)
             , flexShrink (int 0)
@@ -1129,7 +1166,6 @@ movieTvShowMiniCover movieTvShow =
                                 ]
                             ]
                         ]
-                    , zIndex (int 3)
                     ]
                 ]
             , title hintText
@@ -1170,7 +1206,7 @@ movieTvShowMiniCover movieTvShow =
                     )
                 ]
                 [ Html.Styled.fromUnstyled
-                    (Phosphor.magnifyingGlass Duotone
+                    (Phosphor.cursorClick Duotone
                         |> Phosphor.toHtml
                             [ Html.Attributes.style "width" "80%"
                             , Html.Attributes.style "height" "80%"

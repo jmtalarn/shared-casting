@@ -1,4 +1,4 @@
-port module Main exposing (main)
+module Main exposing (main)
 
 import Browser
 import Css exposing (..)
@@ -9,18 +9,13 @@ import Html.Styled.Events exposing (..)
 import Model exposing (Model)
 import Msg exposing (..)
 import Phosphor exposing (IconWeight(..))
+import Title exposing (svgTitle)
 import Update exposing (update)
-import View exposing (dialogCastMemberDetails, dialogMovieSearch, imageSlides, mainStyle, showCastSection, showMovie)
+import View exposing (dialogCastMemberDetails, dialogMovieSearch, mainStyle, showCastSection, showMovie, twoColumnsCssLayout)
 
 
 
 -- Define the port
-
-
-port toggleDialog : String -> Cmd msg
-
-
-
 -- import VitePluginHelper
 
 
@@ -80,40 +75,37 @@ toUnstyledDocument doc =
 
 view : Model -> Document Msg
 view model =
-    { title = "Hello Goodbye"
+    { title = "Shared Cast"
     , body =
         [ main_ [ mainStyle ]
-            [ h1 [] [ text model.greeting ]
-            , div []
-                [ button
-                    [ onClick
-                        (if model.greeting == "You say \"goodbye\"" then
-                            Hello
-
-                         else
-                            Goodbye
-                        )
-                    ]
-                    [ text "Click me! " ]
+            [ header
+                [ css [ displayFlex, alignItems center, justifyContent center, padding3 (px 16) (px 8) (px 0), marginBottom (px 32) ]
                 ]
+                [ svgTitle ]
             , div
                 [ css
-                    [ displayFlex
-                    , flexWrap Css.wrap
-                    , justifyContent spaceAround
-                    , Css.property "gap" "1rem"
-                    ]
+                    twoColumnsCssLayout
                 ]
                 [ div
                     [ css
-                        [ flexGrow (int 0), maxWidth (px 480) ]
+                        [ flexGrow (int 0)
+                        , Css.width (px 480)
+
+                        --, minWidth (px 480)
+                        , maxWidth (px 480)
+                        , padding (px 8)
+                        ]
                     ]
                     (showMovie First (Tuple.first model.movies) (Tuple.first model.details))
                 , div
                     [ css
-                        [ flexGrow (int 0), maxWidth (px 480) ]
+                        [ flexGrow (int 0)
+                        , Css.width (px 480)
 
-                    --, maxWidth (calc (pct 50) minus (rem 1)) ]
+                        --, minWidth (px 480)
+                        , maxWidth (px 480)
+                        , padding (px 8)
+                        ]
                     ]
                     (showMovie Second (Tuple.second model.movies) (Tuple.second model.details))
                 ]

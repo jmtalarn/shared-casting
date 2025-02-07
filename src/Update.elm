@@ -7,9 +7,8 @@ import Model exposing (Model)
 import MovieSearch exposing (fetchCastMemberDetails, fetchData, fetchDetails)
 import Msg exposing (AlsoInDirection(..), MovieIndex(..), MovieTvShow, Msg(..))
 import Process
-import SmoothScroll exposing (defaultConfig, scrollTo, scrollToWithOptions)
 import Task
-import View exposing (dialogCastMemberDetailsId, dialogMovieSearchId, dialogMovieSearchInputId)
+import View exposing (castMemberDetailsAlsoInId, dialogCastMemberDetailsId, dialogMovieSearchId, dialogMovieSearchInputId)
 
 
 
@@ -19,6 +18,9 @@ import View exposing (dialogCastMemberDetailsId, dialogMovieSearchId, dialogMovi
 port toggleDialog : String -> Cmd msg
 
 
+port scroll : ( String, Int ) -> Cmd msg
+
+
 
 -- UPDATE
 
@@ -26,12 +28,6 @@ port toggleDialog : String -> Cmd msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Hello ->
-            ( { model | greeting = "I say \"hello\"" }, Cmd.none )
-
-        Goodbye ->
-            ( { model | greeting = "You say \"goodbye\"" }, Cmd.none )
-
         ReceiveResults (Ok result) ->
             ( { model
                 | searchResult = Just (List.sortBy sortValue result |> List.reverse)
@@ -201,8 +197,17 @@ update msg model =
             , Cmd.none
             )
 
-        Scroll _ ->
-            ( model, Cmd.none )
+        Scroll direction ->
+            let
+                scrollAmount =
+                    case direction of
+                        Forward ->
+                            120 + 16
+
+                        Backward ->
+                            -(120 + 16)
+            in
+            ( model, scroll ( castMemberDetailsAlsoInId, scrollAmount ) )
 
 
 cleanDialogData : Model -> Model
