@@ -5,10 +5,11 @@ import Gallery
 import Http
 import Model exposing (Model)
 import MovieSearch exposing (fetchCastMemberDetails, fetchData, fetchDetails)
-import Msg exposing (MovieIndex(..), MovieTvShow, Msg(..))
+import Msg exposing (AlsoInDirection(..), MovieIndex(..), MovieTvShow, Msg(..))
 import Process
+import SmoothScroll exposing (defaultConfig, scrollTo, scrollToWithOptions)
 import Task
-import View exposing (dialogCastMemberDetailsId, dialogMovieSearchId, dialogMovieSearchInputId, imageSlides)
+import View exposing (dialogCastMemberDetailsId, dialogMovieSearchId, dialogMovieSearchInputId)
 
 
 
@@ -199,6 +200,9 @@ update msg model =
             ( { model | imageGallery = Gallery.update imageGalleryMsg model.imageGallery }
             , Cmd.none
             )
+
+        Scroll _ ->
+            ( model, Cmd.none )
 
 
 cleanDialogData : Model -> Model

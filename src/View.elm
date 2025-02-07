@@ -1010,23 +1010,83 @@ showCastMemberDetails model =
                     ]
                 ]
         )
-    , div [ css [ displayFlex, flexWrap Css.wrap, Css.property "gap" "4px", padding2 (px 0) (px 24) ] ]
-        (case maybeCastMember of
-            Nothing ->
-                []
+    , div [ css [ displayFlex, alignItems baseline, justifyContent spaceAround ] ]
+        [ miniCoverButton Backward
+        , div
+            [ css
+                [ displayFlex
 
-            Just castMember ->
-                List.map
-                    (\( movieTvShow, character ) ->
-                        div [ css [ Css.width (px 120) ] ]
-                            [ movieTvShowMiniCover movieTvShow
-                            , div [ css [ fontSize Css.small, fontWeight bold ] ] [ text movieTvShow.title ]
-                            , div [ css [ fontSize Css.small ] ] [ formatCharacter character Nothing ]
-                            ]
-                    )
-                    castMember.cast
-        )
+                --, flexWrap Css.wrap
+                , Css.property "gap" "8px"
+                , padding2 (px 0) (px 24)
+
+                -- , justifyContent center
+                , maxWidth (pct 85)
+                , overflow auto
+                ]
+            , id castMemberDetailsAlsoInId
+            ]
+            (case maybeCastMember of
+                Nothing ->
+                    []
+
+                Just castMember ->
+                    List.map
+                        (\( movieTvShow, character ) ->
+                            div [ css [ Css.width (px miniCoverWidth) ] ]
+                                [ movieTvShowMiniCover movieTvShow
+                                , div [ css [ fontSize Css.small, fontWeight bold ] ] [ text movieTvShow.title ]
+                                , div [ css [ fontSize Css.small ] ] [ formatCharacter character Nothing ]
+                                ]
+                        )
+                        castMember.cast
+            )
+        , miniCoverButton Forward
+        ]
     ]
+
+
+castMemberDetailsAlsoInId : String
+castMemberDetailsAlsoInId =
+    "also-in"
+
+
+miniCoverButton : AlsoInDirection -> Html Msg
+miniCoverButton direction =
+    let
+        icon =
+            case direction of
+                Forward ->
+                    Phosphor.fastForward
+
+                Backward ->
+                    Phosphor.rewind
+    in
+    button
+        [ css
+            [ backgroundColor Colors.transparent
+            , borderStyle none
+            , color theme.colors.error
+            , cursor pointer
+            , margin (px 10)
+            , flexShrink (int 0)
+            , hover
+                [ Css.Global.descendants
+                    [ Css.Global.typeSelector "svg"
+                        [ Css.property "filter" "drop-shadow(2px 2px 2px rgba(0,0,0,0.9))" ]
+                    ]
+                ]
+            ]
+        , onClick <| Scroll direction
+        ]
+        [ Html.Styled.fromUnstyled
+            (icon Duotone |> Phosphor.toHtml [ Html.Attributes.style "width" "36px", Html.Attributes.style "height" "36px" ])
+        ]
+
+
+miniCoverWidth : number
+miniCoverWidth =
+    120
 
 
 movieTvShowMiniCover : MovieTvShow -> Html Msg
@@ -1124,10 +1184,12 @@ movieTvShowMiniCover movieTvShow =
         ]
 
 
+imageGalleryWidth : number
 imageGalleryWidth =
     450
 
 
+imageGalleryHeight : number
 imageGalleryHeight =
     500
 

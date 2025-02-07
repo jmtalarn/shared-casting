@@ -1,4 +1,4 @@
-module Msg exposing (CastMember, CastMemberDetails, Details, Gender(..), MediaType(..), MovieIndex(..), MovieTvShow, Msg(..), Network)
+module Msg exposing (AlsoInDirection(..), CastMember, CastMemberDetails, Details, Gender(..), MediaType(..), MovieIndex(..), MovieTvShow, Msg(..), Network)
 
 import Gallery
 import Http
@@ -71,6 +71,11 @@ type alias Details =
     }
 
 
+type AlsoInDirection
+    = Backward
+    | Forward
+
+
 type MovieIndex
     = First
     | Second
@@ -86,6 +91,7 @@ type Msg
     | ImageGalleryMsg Gallery.Msg
     | ReceiveCastMember (Result Http.Error CastMemberDetails)
     | HideDialog String
+    | Scroll AlsoInDirection
     | FocusOnInput
     | NoOp
     | InputChanged String
