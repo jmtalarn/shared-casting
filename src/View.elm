@@ -1,7 +1,7 @@
 module View exposing (..)
 
 import Css exposing (..)
-import Css.Global
+import Css.Global exposing (children, typeSelector)
 import Css.Transitions exposing (ease, transition)
 import Gallery
 import Gallery.Image as GalleryImage
@@ -956,7 +956,13 @@ showCastMemberDetails model =
                      else
                         [ Html.Styled.fromUnstyled <| Html.map ImageGalleryMsg <| Gallery.view imageConfig model.imageGallery [ Gallery.Arrows ] (imageSlides castMember.images) ]
                     )
-                , div [ css [ flex3 (int 1) (int 1) (px 450), Css.padding2 (px 0) (px 16) ] ]
+                , div
+                    [ css
+                        [ Css.padding2 (px 0) (px 16)
+
+                        --, flex3 (int 1) (int 1) (px 450)
+                        ]
+                    ]
                     [ header [ css [ displayFlex, Css.height nameHeight, marginLeft (px 8) ] ]
                         [ h2 [ css [] ]
                             [ text
@@ -1067,20 +1073,29 @@ showCastMemberDetails model =
                     ]
                 ]
         )
-    , div [ css [ displayFlex, alignItems baseline, justifyContent spaceAround, marginBottom (px 32) ] ]
+    , div
+        [ css
+            [ displayFlex
+            , alignItems baseline
+            , justifyContent spaceAround
+            , marginBottom (px 32)
+            ]
+        ]
         [ miniCoverButton Backward
         , div
             [ css
                 [ displayFlex
-
-                --, flexWrap Css.wrap
                 , Css.property "gap" "16px"
-
-                --, padding2 (px 0) (px 24)
-                -- , justifyContent center
                 , maxWidth (pct 85)
                 , padding2 (px 24) (px 16)
-                , overflow Css.hidden
+                , overflow Css.auto
+                , Css.property "scroll-snap-type" "x mandatory"
+                , Css.property "-webkit-overflow-scrolling" "touch"
+                , cursor grab
+                , children
+                    [ typeSelector "div"
+                        [ Css.property "scroll-snap-align" "center" ]
+                    ]
                 ]
             , id castMemberDetailsAlsoInId
             ]
