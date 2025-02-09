@@ -11,7 +11,7 @@ import Msg exposing (..)
 import Phosphor exposing (IconWeight(..))
 import Title exposing (svgTitle)
 import Update exposing (update)
-import View exposing (dialogCastMemberDetails, dialogMovieSearch, mainStyle, showCastSection, showMovie, twoColumnsCssLayout)
+import View exposing (dialogCastMemberDetails, dialogMovieSearch, footerBand, mainStyle, pageHeader, showCastSection, showMovie, twoColumnsCssLayout)
 
 
 
@@ -78,10 +78,7 @@ view model =
     { title = "Shared Cast"
     , body =
         [ main_ [ mainStyle ]
-            [ header
-                [ css [ displayFlex, alignItems center, justifyContent center, padding3 (px 16) (px 8) (px 0), marginBottom (px 32) ]
-                ]
-                [ svgTitle ]
+            [ pageHeader
             , div
                 [ css
                     twoColumnsCssLayout
@@ -113,5 +110,6 @@ view model =
             , dialogMovieSearch model
             , dialogCastMemberDetails model
             ]
+        , footerBand
         ]
     }
