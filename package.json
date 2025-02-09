@@ -1,0 +1,29 @@
+{
+	"name": "shared-casting",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"postinstall": "elm-tooling install",
+		"dev": "vite",
+		"prebuild": "elm-tooling install",
+		"build": "vite build",
+		"serve": "vite preview",
+		"lint": "elm-review",
+		"test": "elm-test-rs",
+		"upgrade": "elm-json upgrade && cd review && elm-json upgrade && cd ..",
+		"package:remove": "elm-json uninstall",
+		"netlify:dev": "netlify dev"
+	},
+	"devDependencies": {
+		"@netlify/functions": "^3.0.0",
+		"elm-debug-transformer": "^1.2.1",
+		"elm-review": "^2.12.0",
+		"elm-tooling": "^1.15.1",
+		"vite": "^6.0.5",
+		"vite-plugin-elm": "^3.0.1"
+	},
+	"dependencies": {
+		"@fontsource/inter": "^5.1.1"
+	}
+}
