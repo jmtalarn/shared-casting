@@ -10,11 +10,14 @@ import Html.Attributes
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (..)
+import Logos.Elm
+import Logos.Other
 import Model exposing (Model)
 import Msg exposing (..)
 import Phosphor exposing (IconWeight(..))
 import Styling.Colors as Colors
 import Styling.Theme exposing (theme)
+import Title exposing (svgTitle)
 import VitePluginHelper
 
 
@@ -137,7 +140,16 @@ showMovie movieIndex maybeMovieTvShow maybeDetails =
                     ]
 
                 Nothing ->
-                    []
+                    [ p
+                        [ css
+                            [ color theme.colors.textMuted
+                            , Css.width (px 220)
+                            , margin2 (px 32) auto
+                            ]
+                        ]
+                        [ text "Click on the image above to search for a movie or a TV show."
+                        ]
+                    ]
            )
 
 
@@ -370,8 +382,17 @@ viewItem item =
 
 formatCharacter : String -> Maybe String -> Html msg
 formatCharacter character maybeMovieTitle =
-    div [ css [ color theme.colors.textMuted ] ]
-        ([ span [ css [ fontStyle italic ] ] [ text "as " ]
+    div
+        [ css
+            [ color theme.colors.textMuted
+            , textAlign left
+            ]
+        ]
+        ([ span
+            [ css
+                [ fontStyle italic ]
+            ]
+            [ text "as " ]
          , span [ css [ fontWeight Css.bold ] ] [ text character ]
          ]
             ++ (case maybeMovieTitle of
@@ -605,7 +626,7 @@ showCastSection ( maybeFirstMovieTvShow, maybeSecondMovieTvShow ) ( maybeFirstDe
                 [ showCastColumn secondCast secondMovieTitle ]
     in
     section []
-        [ div [ css [ margin2 (rem 1) auto, displayFlex, alignItems center, flexDirection column ] ]
+        [ div [ css [ displayFlex, alignItems center, flexDirection column ] ]
             (if not <| List.isEmpty sharedCast then
                 [ showSharedCastColumn sharedCast "both" ( maybeFirstMovieTvShow, maybeSecondMovieTvShow ) ( maybeFirstDetails, maybeSecondDetails )
                 ]
@@ -787,7 +808,7 @@ mainStyle =
     css
         [ backgroundColor theme.colors.surface
         , color theme.colors.text
-        , minHeight (Css.pct 100)
+        , minHeight (calc (Css.pct 100) minus (rem 4))
         ]
 
 
@@ -1247,3 +1268,64 @@ imageSlides images =
             ( x, GalleryImage.slide x GalleryImage.Contain )
         )
         images
+
+
+footerBand : Html msg
+footerBand =
+    let
+        commonSVG =
+            [ Css.property "filter" "brightness(0) invert(1)"
+            , flexShrink (int 0)
+            ]
+
+        commonSpan =
+            [ whiteSpace noWrap, margin (px 4) ]
+    in
+    footer [ css [ padding2 (rem 1) (rem 2), backgroundColor theme.colors.surfaceDark, color theme.colors.text ] ]
+        [ div
+            [ css [ displayFlex, alignItems center, fontSize (px 10), flexWrap Css.wrap ] ]
+            [ span
+                [ css commonSpan ]
+                [ text "Made with love" ]
+            , Logos.Elm.view
+                [ css
+                    (Css.height (rem 2) :: commonSVG)
+                , title "love"
+                ]
+                Logos.Elm.modelHeart
+            , span [ css commonSpan ] [ text "and Elm" ]
+            , Logos.Elm.view
+                [ css
+                    (Css.height (rem 2) :: commonSVG)
+                , title "Elm"
+                ]
+                Logos.Elm.modelStart
+            , span [ css commonSpan ] [ text ", using the API from The TMDB.org" ]
+            , Logos.Other.theTMDBorg [ css (Css.width (px 80) :: commonSVG), title "The TMDB.org" ]
+            , span [ css commonSpan ] [ text " and deployed over Netlify" ]
+            , Logos.Other.netlify [ css (Css.height (rem 2) :: commonSVG), title "Netlify." ]
+            , span [ css commonSpan ] [ text " Check it on Github" ]
+            , span [ css [] ]
+                [ a [ href "https://github.com/jmtalarn/shared-casting", css [ color inherit, textDecoration inherit ] ]
+                    [ Html.Styled.fromUnstyled
+                        (Phosphor.githubLogo Duotone
+                            |> Phosphor.toHtml
+                                [ Html.Attributes.style "margin" "8px"
+                                , Html.Attributes.style "width" "16px"
+                                , Html.Attributes.style "height" "16px"
+                                ]
+                        )
+                    ]
+                ]
+            ]
+        ]
+
+
+pageHeader : Html msg
+pageHeader =
+    header
+        [ css [ displayFlex, alignItems center, justifyContent center, padding3 (px 16) (px 8) (px 0), marginBottom (px 32), position relative ]
+        , title "Shared Cast"
+        ]
+        [ svgTitle
+        ]
