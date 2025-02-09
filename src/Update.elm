@@ -178,9 +178,6 @@ update msg model =
                                 _ ->
                                     Just First
                     }
-
-                _ =
-                    Debug.log "targetMovieIndex" currentIndex
             in
             case currentIndex of
                 Just index ->
