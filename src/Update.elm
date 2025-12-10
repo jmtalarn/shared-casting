@@ -45,6 +45,41 @@ update msg model =
 
         ReceiveDetails movieIndex (Ok details) ->
             let
+                _ =
+                    Debug.log "details" details
+
+                updateMovieWithDetails : Maybe MovieTvShow -> Maybe MovieTvShow
+                updateMovieWithDetails maybeMovie =
+                    case maybeMovie of
+                        Just movie ->
+                            Just
+                                { movie
+                                    | networks = details.networks
+                                    , content_ratings = details.content_ratings
+                                    , runtime = details.runtime
+                                    , genres = details.genres
+                                    , images =
+                                        { poster = movie.images.poster
+                                        , backdrop = movie.images.backdrop
+                                        , logo = details.logo
+                                        }
+                                }
+
+                        Nothing ->
+                            Nothing
+
+                updatedMovies =
+                    case movieIndex of
+                        First ->
+                            ( updateMovieWithDetails (Tuple.first model.movies)
+                            , Tuple.second model.movies
+                            )
+
+                        Second ->
+                            ( Tuple.first model.movies
+                            , updateMovieWithDetails (Tuple.second model.movies)
+                            )
+
                 updatedModel =
                     { model
                         | details =
@@ -54,6 +89,7 @@ update msg model =
 
                                 Second ->
                                     ( Tuple.first model.details, Just details )
+                        , movies = updatedMovies
                         , error = Nothing
                     }
             in

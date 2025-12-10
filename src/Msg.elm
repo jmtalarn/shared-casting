@@ -1,4 +1,4 @@
-module Msg exposing (AlsoInDirection(..), CastMember, CastMemberDetails, Details, Gender(..), MediaType(..), MovieIndex(..), MovieTvShow, Msg(..), Network)
+module Msg exposing (AlsoInDirection(..), CastMember, CastMemberDetails, Details, Gender(..), Images, MediaType(..), MovieIndex(..), MovieTvShow, Msg(..), Network)
 
 import Gallery
 import Http
@@ -15,6 +15,10 @@ type MediaType
     | Movie
 
 
+type alias Images =
+    { poster : Maybe String, backdrop : Maybe String, logo : Maybe String }
+
+
 type alias MovieTvShow =
     { id : Int
     , mediaType : MediaType
@@ -24,8 +28,11 @@ type alias MovieTvShow =
     , popularity : Float
     , vote_average : Float
     , vote_count : Int
-    , images : ( Maybe String, Maybe String )
+    , images : Images
     , networks : List Network
+    , content_ratings : List ( String, String )
+    , runtime : Maybe Int
+    , genres : List String
     }
 
 
@@ -67,6 +74,10 @@ type alias CastMemberDetails =
 
 type alias Details =
     { networks : List Network
+    , content_ratings : List ( String, String )
+    , runtime : Maybe Int
+    , genres : List String
+    , logo : Maybe String
     , cast : List CastMember
     }
 

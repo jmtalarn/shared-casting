@@ -5,7 +5,7 @@ export const config: Config = {
 };
 
 const buildUrl = ({ type, id }: { type: "movie" | "tv", id: string }) =>
-	`https://api.themoviedb.org/3/${type}/${id}?language=en-US&append_to_response=${type === "movie" ? 'credits' : 'aggregate_credits'}`;
+	`https://api.themoviedb.org/3/${type}/${id}?language=en-US&append_to_response=${type === "movie" ? 'credits' : 'aggregate_credits'},images${type === "tv" ? ',content_ratings' : ''}${type === "movie" ? ',release_dates' : ''}`;
 
 const options = {
 	method: "GET",
@@ -23,7 +23,7 @@ export default async (req: Request, context: Context) => {
 			throw new Error("Invalid type parameter");
 		}
 		const url = buildUrl({ type: type as "movie" | "tv", id });
-
+		console.log(url)
 
 		const response = await fetch(url, options);
 
@@ -33,7 +33,7 @@ export default async (req: Request, context: Context) => {
 
 		// Convert response to JSON
 		const data = await response.json();
-
+		console.log({ data });
 		return new Response(JSON.stringify(data), {
 			headers: { "Content-Type": "application/json" },
 			status: 200,

@@ -61,15 +61,14 @@ mediaTypeLabel mediaType parenthesis =
 
 showMovie : MovieIndex -> Maybe MovieTvShow -> Maybe Details -> List (Html Msg)
 showMovie movieIndex maybeMovieTvShow maybeDetails =
-    let
-        networks =
-            case maybeDetails of
-                Just details ->
-                    details.networks
-
-                Nothing ->
-                    []
-    in
+    -- let
+    --     networks =
+    --         case maybeDetails of
+    --             Just details ->
+    --                 details.networks
+    --             Nothing ->
+    --                 []
+    -- in
     movieTvShowCover movieIndex maybeMovieTvShow
         :: (case maybeMovieTvShow of
                 Just movieTvShow ->
@@ -125,7 +124,7 @@ showMovie movieIndex maybeMovieTvShow maybeDetails =
                                                 []
                                             ]
                                     )
-                                    networks
+                                    movieTvShow.networks
                                 )
                             ]
                         ]
@@ -137,6 +136,63 @@ showMovie movieIndex maybeMovieTvShow maybeDetails =
                         ]
                         [ text (.description movieTvShow)
                         ]
+                    , div
+                        [ css
+                            [ displayFlex
+                            , flexWrap Css.wrap
+                            , alignItems center
+                            , Css.property "gap" "0.5rem"
+                            , marginBottom (px 16)
+                            ]
+                        ]
+                        (List.concat
+                            [ case movieTvShow.runtime of
+                                Just runtime ->
+                                    [ span
+                                        [ css
+                                            [ color theme.colors.textMuted
+                                            , fontSize (px 14)
+                                            ]
+                                        ]
+                                        [ text (String.fromInt runtime ++ " min")
+                                        ]
+                                    ]
+
+                                Nothing ->
+                                    []
+                            , if List.isEmpty movieTvShow.genres then
+                                []
+
+                              else
+                                List.map
+                                    (\genre ->
+                                        span
+                                            [ css
+                                                [ backgroundColor theme.colors.primary
+                                                , color theme.colors.text
+                                                , padding2 (px 4) (px 8)
+                                                , borderRadius (px 4)
+                                                , fontSize (px 12)
+                                                ]
+                                            ]
+                                            [ text genre ]
+                                    )
+                                    movieTvShow.genres
+                            , if List.isEmpty movieTvShow.content_ratings then
+                                []
+
+                              else
+                                List.map
+                                    (\content_rating ->
+                                        div
+                                            []
+                                            [ span [] [ text <| Tuple.first content_rating ]
+                                            , span [] [ text <| Tuple.second content_rating ]
+                                            ]
+                                    )
+                                    movieTvShow.content_ratings
+                            ]
+                        )
                     ]
 
                 Nothing ->
@@ -319,8 +375,8 @@ viewItem item =
                 , padding (px 8)
                 ]
 
-        ( cover, _ ) =
-            item.images
+        cover =
+            item.images.poster
     in
     li
         [ resultItemStyle
@@ -369,10 +425,54 @@ viewItem item =
                                 -- , Css.width (px 480)
                                 --, Css.minWidth (px 480)
                                 , marginTop auto
-                                , marginBottom (px 32)
+                                , marginBottom (px 8)
                                 ]
                             ]
                             [ text item.description ]
+                        , div
+                            [ css
+                                [ displayFlex
+                                , flexWrap Css.wrap
+                                , alignItems center
+                                , Css.property "gap" "0.5rem"
+                                , marginBottom (px 32)
+                                ]
+                            ]
+                            (List.concat
+                                [ case item.runtime of
+                                    Just runtime ->
+                                        [ span
+                                            [ css
+                                                [ color theme.colors.textMuted
+                                                , fontSize (px 11)
+                                                ]
+                                            ]
+                                            [ text (String.fromInt runtime ++ " min")
+                                            ]
+                                        ]
+
+                                    Nothing ->
+                                        []
+                                , if List.isEmpty item.genres then
+                                    []
+
+                                  else
+                                    List.map
+                                        (\genre ->
+                                            span
+                                                [ css
+                                                    [ backgroundColor theme.colors.primary
+                                                    , color theme.colors.text
+                                                    , padding2 (px 3) (px 6)
+                                                    , borderRadius (px 3)
+                                                    , fontSize (px 11)
+                                                    ]
+                                                ]
+                                                [ text genre ]
+                                        )
+                                        item.genres
+                                ]
+                            )
                         ]
                     ]
                 ]
@@ -676,7 +776,7 @@ movieTvShowCover index maybeMovieTvShow =
         cover =
             case maybeMovieTvShow of
                 Just movieTvShow ->
-                    case Tuple.first movieTvShow.images of
+                    case movieTvShow.images.poster of
                         Just url ->
                             url
 
@@ -785,6 +885,10 @@ defaultDetails : Details
 defaultDetails =
     { cast = []
     , networks = []
+    , content_ratings = []
+    , runtime = Nothing
+    , genres = []
+    , logo = Nothing
     }
 
 
@@ -794,12 +898,15 @@ defaultMovieTvShow =
     , title = ""
     , year = ""
     , description = ""
-    , images = ( Nothing, Nothing )
+    , images = { poster = Nothing, backdrop = Nothing, logo = Nothing }
     , networks = []
     , mediaType = Movie
     , popularity = 0
     , vote_average = 0
     , vote_count = 0
+    , content_ratings = []
+    , runtime = Nothing
+    , genres = []
     }
 
 
@@ -1169,7 +1276,7 @@ movieTvShowMiniCover movieTvShow =
             VitePluginHelper.asset "/src/assets/generic-cinema.jpg"
 
         cover =
-            case Tuple.first movieTvShow.images of
+            case movieTvShow.images.poster of
                 Just url ->
                     url
 

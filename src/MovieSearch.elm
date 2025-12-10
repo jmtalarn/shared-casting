@@ -1,8 +1,9 @@
 module MovieSearch exposing (fetchCastMemberDetails, fetchData, fetchDetails)
 
 import Http
-import Json.Decode exposing (Decoder, at, bool, fail, field, float, int, list, map, map2, oneOf, string, succeed)
+import Json.Decode exposing (Decoder, andThen, at, bool, fail, field, float, int, list, map, map2, map3, oneOf, string, succeed)
 import Json.Decode.Pipeline exposing (custom, optional, required)
+import List
 import Msg exposing (..)
 import Platform.Cmd as Cmd
 import String exposing (String)
@@ -26,13 +27,187 @@ movieTvShowDecoder =
         |> required "vote_count" int
         |> custom imagesDecoder
         |> optional "networks" (Json.Decode.list networkDecoder) []
+        |> custom contentRatingsDecoder
+        |> custom runtimeDecoder
+        |> custom genresDecoder
 
 
-imagesDecoder : Decoder ( Maybe String, Maybe String )
+imagesDecoder : Decoder Images
 imagesDecoder =
-    map2 (\img1 img2 -> ( img1, img2 ))
+    map3 (\poster backdrop logo -> Images poster backdrop logo)
         (field "poster_path" (Json.Decode.nullable string) |> Json.Decode.map (Maybe.map (\path -> "https://image.tmdb.org/t/p/original" ++ path)))
         (field "backdrop_path" (Json.Decode.nullable string) |> Json.Decode.map (Maybe.map (\path -> "https://image.tmdb.org/t/p/original" ++ path)))
+        imagesLogoDecoder
+
+
+imagesLogoDecoder : Decoder (Maybe String)
+imagesLogoDecoder =
+    oneOf
+        [ at [ "images", "logos" ] (list logoDecoder)
+            |> Json.Decode.map
+                (\logos ->
+                    logos
+                        |> List.filter (\logo -> logo.iso_3166_1 == Just "US" || logo.iso_3166_1 == Nothing)
+                        |> List.sortBy (\logo -> -logo.vote_average)
+                        |> List.head
+                        |> Maybe.map .file_path
+                        |> Maybe.map (\path -> "https://image.tmdb.org/t/p/original" ++ path)
+                )
+        , succeed Nothing
+        ]
+
+
+type alias Logo =
+    { iso_3166_1 : Maybe String
+    , vote_average : Float
+    , file_path : String
+    }
+
+
+logoDecoder : Decoder Logo
+logoDecoder =
+    succeed Logo
+        |> required "iso_3166_1" (Json.Decode.nullable string)
+        |> required "vote_average" float
+        |> required "file_path" string
+
+
+contentRatingsDecoder : Decoder (List ( String, String ))
+contentRatingsDecoder =
+    oneOf
+        [ movieContentRatingsDecoder
+        , -- Try to decode as TV (has content_ratings)
+          tvContentRatingsDecoder
+        , succeed []
+        ]
+
+
+tvContentRatingsDecoder : Decoder (List ( String, String ))
+tvContentRatingsDecoder =
+    at [ "content_ratings", "results" ] (list tvContentRatingItemDecoder)
+        |> Json.Decode.map
+            (\items ->
+                items
+                    |> List.filter
+                        (\item ->
+                            item.iso_3166_1
+                                == Just "US"
+                                || item.iso_3166_1
+                                == Just "ES"
+                                || item.iso_3166_1
+                                == Nothing
+                        )
+                    |> List.map
+                        (\item ->
+                            ( Maybe.withDefault "" item.iso_3166_1, item.rating )
+                        )
+            )
+
+
+type alias TvContentRatingItem =
+    { iso_3166_1 : Maybe String
+    , rating : String
+    }
+
+
+tvContentRatingItemDecoder : Decoder TvContentRatingItem
+tvContentRatingItemDecoder =
+    succeed TvContentRatingItem
+        |> required "iso_3166_1" (Json.Decode.nullable string)
+        |> required "rating" string
+
+
+movieContentRatingsDecoder : Decoder (List ( String, String ))
+movieContentRatingsDecoder =
+    at [ "release_dates", "results" ] (list movieReleaseDateResultDecoder)
+        |> Json.Decode.map
+            (\results ->
+                results
+                    |> List.filter
+                        (\result ->
+                            result.iso_3166_1
+                                == Just "US"
+                                || result.iso_3166_1
+                                == Just "ES"
+                                || result.iso_3166_1
+                                == Nothing
+                        )
+                    |> List.filterMap
+                        (\result ->
+                            result.release_dates
+                                |> List.filter (\rd -> rd.type_ == 3)
+                                |> List.head
+                                |> Maybe.map
+                                    (\rd ->
+                                        ( Maybe.withDefault "" result.iso_3166_1, rd.certification )
+                                    )
+                        )
+            )
+
+
+type alias MovieReleaseDateResult =
+    { iso_3166_1 : Maybe String
+    , release_dates : List ReleaseDate
+    }
+
+
+type alias ReleaseDate =
+    { certification : String
+    , type_ : Int
+    }
+
+
+movieReleaseDateResultDecoder : Decoder MovieReleaseDateResult
+movieReleaseDateResultDecoder =
+    succeed MovieReleaseDateResult
+        |> required "iso_3166_1" (Json.Decode.nullable string)
+        |> required "release_dates" (list releaseDateDecoder)
+
+
+releaseDateDecoder : Decoder ReleaseDate
+releaseDateDecoder =
+    succeed ReleaseDate
+        |> required "certification" string
+        |> required "type" int
+
+
+runtimeDecoder : Decoder (Maybe Int)
+runtimeDecoder =
+    let
+        nIsNothing n =
+            if n == 0 then
+                Nothing
+
+            else
+                Just n
+    in
+    oneOf
+        [ field "runtime"
+            (Json.Decode.nullable int
+                |> Json.Decode.map
+                    (Maybe.andThen nIsNothing)
+            )
+        , field "episode_runtime"
+            (list int
+                |> Json.Decode.map List.head
+                |> Json.Decode.map
+                    (Maybe.andThen nIsNothing)
+            )
+        , Json.Decode.at [ "last_episode_to_air", "runtime" ]
+            (Json.Decode.nullable int
+                |> Json.Decode.map
+                    (Maybe.andThen nIsNothing)
+            )
+        , succeed Nothing
+        ]
+
+
+genresDecoder : Decoder (List String)
+genresDecoder =
+    oneOf
+        [ field "genres" (list (field "name" string))
+        , succeed []
+        ]
 
 
 descriptionDecoder : Decoder String
@@ -158,6 +333,10 @@ detailsDecoder : Decoder Details
 detailsDecoder =
     succeed Details
         |> optional "networks" (Json.Decode.list networkDecoder) []
+        |> custom contentRatingsDecoder
+        |> custom runtimeDecoder
+        |> custom genresDecoder
+        |> custom imagesLogoDecoder
         |> custom creditsDecoder
 
 
