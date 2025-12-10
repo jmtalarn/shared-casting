@@ -74,9 +74,9 @@ themeFonts =
     , input =
         [ fontFamilies [ "Inter", "Helvetica", "Arial", .value sansSerif ]
         , fontWeight (int 200)
-        , fontSize (px 20)
+        , fontSize (px 16)
         , pseudoElement "placeholder"
-            [ color themeColors.textMuted ]
+            [ color themeColors.textMuted, fontSize (px 12) ]
         ]
     , error = [ fontFamilies [ .value monospace ], color themeColors.error ]
     }

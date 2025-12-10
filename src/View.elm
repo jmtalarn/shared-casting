@@ -364,9 +364,9 @@ viewItem item =
                                 [ marginTop (px 8)
                                 , color theme.colors.textMuted
                                 , fontSize (px 12)
-                                , maxWidth (px 480)
-                                , Css.width (px 480)
 
+                                -- , maxWidth (px 480)
+                                -- , Css.width (px 480)
                                 --, Css.minWidth (px 480)
                                 , marginTop auto
                                 , marginBottom (px 32)
@@ -934,7 +934,7 @@ showCastMemberDetails model =
             , minHeight (px 64)
             , flexWrap Css.wrap
             , justifyContent center
-            , overflow auto
+            , Css.property "overflow" "clip"
             ]
         ]
         (case maybeCastMember of
