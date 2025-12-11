@@ -47,7 +47,7 @@ imagesLogoDecoder =
             |> Json.Decode.map
                 (\logos ->
                     logos
-                        |> List.filter (\logo -> logo.iso_3166_1 == Just "US" || logo.iso_3166_1 == Nothing)
+                        --|> List.filter (\logo -> logo.iso_3166_1 == Just "US" || logo.iso_3166_1 == Nothing)
                         |> List.sortBy (\logo -> -logo.vote_average)
                         |> List.head
                         |> Maybe.map .file_path
@@ -88,15 +88,15 @@ tvContentRatingsDecoder =
         |> Json.Decode.map
             (\items ->
                 items
-                    |> List.filter
-                        (\item ->
-                            item.iso_3166_1
-                                == Just "US"
-                                || item.iso_3166_1
-                                == Just "ES"
-                                || item.iso_3166_1
-                                == Nothing
-                        )
+                    -- |> List.filter
+                    --     (\item ->
+                    --         item.iso_3166_1
+                    --             == Just "US"
+                    --             || item.iso_3166_1
+                    --             == Just "ES"
+                    --             || item.iso_3166_1
+                    --             == Nothing
+                    --     )
                     |> List.map
                         (\item ->
                             ( Maybe.withDefault "" item.iso_3166_1, item.rating )
@@ -123,15 +123,15 @@ movieContentRatingsDecoder =
         |> Json.Decode.map
             (\results ->
                 results
-                    |> List.filter
-                        (\result ->
-                            result.iso_3166_1
-                                == Just "US"
-                                || result.iso_3166_1
-                                == Just "ES"
-                                || result.iso_3166_1
-                                == Nothing
-                        )
+                    -- |> List.filter
+                    --     (\result ->
+                    --         result.iso_3166_1
+                    --             == Just "US"
+                    --             || result.iso_3166_1
+                    --             == Just "ES"
+                    --             || result.iso_3166_1
+                    --             == Nothing
+                    --     )
                     |> List.filterMap
                         (\result ->
                             result.release_dates

@@ -1,5 +1,6 @@
 module View exposing (..)
 
+import ContentRating
 import Css exposing (..)
 import Css.Global exposing (children, typeSelector)
 import Css.Transitions exposing (ease, transition)
@@ -41,96 +42,45 @@ showCast cast =
         )
 
 
-mediaTypeLabel : MediaType -> Bool -> String
-mediaTypeLabel mediaType parenthesis =
+mediaTypeLabelText : MediaType -> String
+mediaTypeLabelText mediaType =
     case mediaType of
         Tv ->
-            if parenthesis then
-                " (TV Show)"
-
-            else
-                " TV show"
+            " TV show"
 
         Movie ->
-            if parenthesis then
-                " (Movie)"
-
-            else
-                " movie"
+            " Movie"
 
 
-contentRatingImagePath : ( String, String ) -> Maybe String
-contentRatingImagePath ( countryCode, rating ) =
-    let
-        normalizedCountryCode =
-            if countryCode == "" then
-                "US"
+mediaTypeLabel : MediaType -> Html msg
+mediaTypeLabel mediaType =
+    span [ css [ displayFlex, alignItems center, Css.property "gap" "4px" ] ]
+        [ mediaTypeIcon mediaType
+        , text (mediaTypeLabelText mediaType)
+        ]
 
-            else
-                countryCode
 
-        key =
-            normalizedCountryCode ++ "_" ++ rating
-    in
-    case key of
-        "ES_12" ->
-            Just (VitePluginHelper.asset "/src/assets/content-ratings/ES_12.png")
+mediaTypeIcon : MediaType -> Html msg
+mediaTypeIcon mediaType =
+    Html.Styled.fromUnstyled
+        (case mediaType of
+            Tv ->
+                Phosphor.television Regular
+                    |> Phosphor.toHtml
+                        [ Html.Attributes.title "TV Show"
+                        ]
 
-        "ES_16" ->
-            Just (VitePluginHelper.asset "/src/assets/content-ratings/ES_16.png")
-
-        "ES_18" ->
-            Just (VitePluginHelper.asset "/src/assets/content-ratings/ES_18.png")
-
-        "ES_7" ->
-            Just (VitePluginHelper.asset "/src/assets/content-ratings/ES_7.png")
-
-        "ES_A" ->
-            Just (VitePluginHelper.asset "/src/assets/content-ratings/ES_A.png")
-
-        "ES_X" ->
-            Just (VitePluginHelper.asset "/src/assets/content-ratings/ES_X.png")
-
-        "US_G" ->
-            Just (VitePluginHelper.asset "/src/assets/content-ratings/US_G.png")
-
-        "US_NC-17" ->
-            Just (VitePluginHelper.asset "/src/assets/content-ratings/US_NC-17.png")
-
-        "US_PG-13" ->
-            Just (VitePluginHelper.asset "/src/assets/content-ratings/US_PG-13.png")
-
-        "US_PG" ->
-            Just (VitePluginHelper.asset "/src/assets/content-ratings/US_PG.png")
-
-        "US_R" ->
-            Just (VitePluginHelper.asset "/src/assets/content-ratings/US_R.png")
-
-        "US_TV-14" ->
-            Just (VitePluginHelper.asset "/src/assets/content-ratings/US_TV-14.png")
-
-        "US_TV-G" ->
-            Just (VitePluginHelper.asset "/src/assets/content-ratings/US_TV-G.png")
-
-        "US_TV-MA" ->
-            Just (VitePluginHelper.asset "/src/assets/content-ratings/US_TV-MA.png")
-
-        "US_TV-PG" ->
-            Just (VitePluginHelper.asset "/src/assets/content-ratings/US_TV-PG.png")
-
-        "US_TV-Y" ->
-            Just (VitePluginHelper.asset "/src/assets/content-ratings/US_TV-Y.png")
-
-        "US_TV-Y7" ->
-            Just (VitePluginHelper.asset "/src/assets/content-ratings/US_TV-Y7.png")
-
-        _ ->
-            Nothing
+            Movie ->
+                Phosphor.filmSlate Regular
+                    |> Phosphor.toHtml
+                        [ Html.Attributes.title "Movie"
+                        ]
+        )
 
 
 contentRatingImage : ( String, String ) -> Html Msg
 contentRatingImage contentRating =
-    case contentRatingImagePath contentRating of
+    case ContentRating.contentRatingImagePath contentRating of
         Just imagePath ->
             let
                 ( countryCode, rating ) =
@@ -210,9 +160,8 @@ showMovie movieIndex maybeMovieTvShow maybeDetails =
                                     ]
                                 ]
                                 [ span [] [ text movieTvShow.year ]
-                                , span [ css [ fontSize (px 12), color theme.colors.textMuted ] ]
-                                    [ text <| mediaTypeLabel movieTvShow.mediaType True
-                                    ]
+                                , span [ css [ fontSize (px 14), color theme.colors.textMuted ] ]
+                                    [ mediaTypeLabel movieTvShow.mediaType ]
                                 , button
                                     [ onClick <| ShowMovieDetails movieIndex
                                     , css
@@ -570,9 +519,8 @@ viewItem item =
                             [ text <| item.title ]
                         , div [ css [ marginBottom (px 8) ] ]
                             [ span [] [ text item.year ]
-                            , span [ css [ fontSize (px 12) ] ]
-                                [ text <| mediaTypeLabel item.mediaType True
-                                ]
+                            , span [ css [ fontSize (px 14) ] ]
+                                [ mediaTypeLabel item.mediaType ]
                             ]
 
                         -- , div [ css [] ] (List.map (\imgSvg -> img [ src imgSvg.logo ] []) item.networks)
@@ -624,6 +572,53 @@ formatCharacter character maybeMovieTitle =
         )
 
 
+getCharacterForMember : CastMember -> Maybe Details -> String -> Html msg
+getCharacterForMember member maybeDetails movieTitle =
+    let
+        character =
+            case maybeDetails of
+                Just details ->
+                    details.cast
+                        |> List.filter (\c -> c.id == member.id)
+                        |> List.head
+                        |> Maybe.map .character
+                        |> Maybe.withDefault "uncredited"
+
+                Nothing ->
+                    "uncredited"
+    in
+    formatCharacter character (Just movieTitle)
+
+
+getMovieTitles : MovieTvShow -> MovieTvShow -> ( String, String )
+getMovieTitles firstMovie secondMovie =
+    let
+        baseFirstTitle =
+            firstMovie.title
+
+        baseSecondTitle =
+            secondMovie.title
+    in
+    if baseFirstTitle /= baseSecondTitle then
+        ( baseFirstTitle, baseSecondTitle )
+
+    else
+        let
+            firstWithType =
+                baseFirstTitle ++ " (" ++ mediaTypeLabelText firstMovie.mediaType ++ ")"
+
+            secondWithType =
+                baseSecondTitle ++ " (" ++ mediaTypeLabelText secondMovie.mediaType ++ ")"
+        in
+        if firstWithType /= secondWithType then
+            ( firstWithType, secondWithType )
+
+        else
+            ( baseFirstTitle ++ " (" ++ mediaTypeLabelText firstMovie.mediaType ++ " - " ++ firstMovie.year ++ ")"
+            , baseSecondTitle ++ " (" ++ mediaTypeLabelText secondMovie.mediaType ++ " - " ++ secondMovie.year ++ ")"
+            )
+
+
 showSharedCastMember : CastMember -> ( Maybe MovieTvShow, Maybe MovieTvShow ) -> ( Maybe Details, Maybe Details ) -> Html Msg
 showSharedCastMember member ( maybeFirstMovieTvShow, maybeSecondMovieTvShow ) ( maybeFirstDetails, maybeSecondDetails ) =
     let
@@ -633,32 +628,14 @@ showSharedCastMember member ( maybeFirstMovieTvShow, maybeSecondMovieTvShow ) ( 
         secondMovie =
             Maybe.withDefault defaultMovieTvShow maybeSecondMovieTvShow
 
-        showMediaType =
-            firstMovie.title == secondMovie.title
-
-        firstMovieTitle =
-            firstMovie.title
-                ++ (if showMediaType then
-                        " " ++ mediaTypeLabel firstMovie.mediaType True
-
-                    else
-                        ""
-                   )
-
-        secondMovieTitle =
-            secondMovie.title
-                ++ (if showMediaType then
-                        " " ++ mediaTypeLabel secondMovie.mediaType True
-
-                    else
-                        ""
-                   )
+        ( firstMovieTitle, secondMovieTitle ) =
+            getMovieTitles firstMovie secondMovie
 
         characterFirst =
-            formatCharacter (Maybe.withDefault "uncredited" (Maybe.map .character (List.head (List.filter (\c -> c.id == member.id) (Maybe.withDefault defaultDetails maybeFirstDetails).cast)))) (Just firstMovieTitle)
+            getCharacterForMember member maybeFirstDetails firstMovieTitle
 
         characterSecond =
-            formatCharacter (Maybe.withDefault "uncredited" (Maybe.map .character (List.head (List.filter (\c -> c.id == member.id) (Maybe.withDefault defaultDetails maybeSecondDetails).cast)))) (Just secondMovieTitle)
+            getCharacterForMember member maybeSecondDetails secondMovieTitle
 
         characters =
             [ characterFirst
@@ -810,23 +787,18 @@ showCastSection ( maybeFirstMovieTvShow, maybeSecondMovieTvShow ) ( maybeFirstDe
         showMediaType =
             firstMovieTvShow.title == secondMovieTvShow.title
 
-        firstMovieTitle =
-            firstMovieTvShow.title
-                ++ (if showMediaType then
-                        " " ++ mediaTypeLabel firstMovieTvShow.mediaType True
+        movieTitleWithParenthesis movieTvShow isShowMediaType =
+            if isShowMediaType then
+                movieTvShow.title ++ " (" ++ mediaTypeLabelText movieTvShow.mediaType ++ ")"
 
-                    else
-                        ""
-                   )
+            else
+                movieTvShow.title
+
+        firstMovieTitle =
+            movieTitleWithParenthesis firstMovieTvShow showMediaType
 
         secondMovieTitle =
-            secondMovieTvShow.title
-                ++ (if showMediaType then
-                        " " ++ mediaTypeLabel secondMovieTvShow.mediaType True
-
-                    else
-                        ""
-                   )
+            movieTitleWithParenthesis secondMovieTvShow showMediaType
 
         firstColumn =
             if List.isEmpty firstCast then
@@ -881,7 +853,13 @@ hintText =
 
 hintMiniText : MediaType -> String
 hintMiniText mediaType =
-    "Select this " ++ mediaTypeLabel mediaType False
+    "Select this "
+        ++ (if mediaType == Movie then
+                "movie"
+
+            else
+                "TV show"
+           )
 
 
 movieTvShowCover : MovieIndex -> Maybe MovieTvShow -> Html Msg
@@ -1382,373 +1360,375 @@ showMovieDetailsDialog movie maybeDetails castExpanded currentMovieIndex =
                               div
                                 [ css
                                     [ displayFlex
-                                    , alignItems center
+                                    , alignItems flexStart
                                     , flexWrap Css.wrap
                                     , Css.property "gap" "1rem"
                                     , marginBottom (px 8)
+                                    , flexDirection column
                                     ]
                                 ]
-                                [ if logoUrl == "" then
-                                    h1
+                                [ --if logoUrl == "" then
+                                  h1
+                                    [ css
+                                        [ color theme.colors.text
+                                        , fontSize (rem 2.5)
+                                        , fontWeight (int 700)
+                                        , Css.property "text-shadow" "2px 2px 8px rgba(0,0,0,0.8)"
+                                        ]
+                                    ]
+                                    [ text movie.title ]
+
+                                --   else
+                                --     text ""
+                                , div [ css [ displayFlex, alignItems center, Css.property "gap" "0.5rem" ] ]
+                                    [ span
                                         [ css
-                                            [ color theme.colors.text
-                                            , fontSize (rem 2.5)
-                                            , fontWeight (int 700)
-                                            , Css.property "text-shadow" "2px 2px 8px rgba(0,0,0,0.8)"
+                                            [ color theme.colors.textMuted
+                                            , fontSize (rem 1.2)
                                             ]
                                         ]
-                                        [ text movie.title ]
-
-                                  else
-                                    text ""
-                                , span
-                                    [ css
-                                        [ color theme.colors.textMuted
-                                        , fontSize (rem 1.2)
-                                        ]
-                                    ]
-                                    [ text movie.year ]
-                                , span
-                                    [ css
-                                        [ color theme.colors.textMuted
-                                        , fontSize (rem 1)
-                                        , padding2 (px 6) (px 12)
-                                        , backgroundColor (rgba 255 255 255 0.1)
-                                        , borderRadius (px 6)
-                                        ]
-                                    ]
-                                    [ text <| mediaTypeLabel movie.mediaType True
-                                    ]
-                                ]
-
-                            -- Description
-                            , p
-                                [ css
-                                    [ color theme.colors.text
-                                    , fontSize (rem 1.1)
-                                    , lineHeight (num 1.6)
-                                    , marginTop (px 8)
-                                    ]
-                                ]
-                                [ text movie.description ]
-
-                            -- Stats row
-                            , div
-                                [ css
-                                    [ displayFlex
-                                    , flexWrap Css.wrap
-                                    , alignItems center
-                                    , Css.property "gap" "2rem"
-                                    , marginTop (px 16)
-                                    ]
-                                ]
-                                [ -- Rating
-                                  div
-                                    [ css
-                                        [ displayFlex
-                                        , alignItems center
-                                        , Css.property "gap" "0.5rem"
-                                        ]
-                                    ]
-                                    [ Html.Styled.fromUnstyled
-                                        (Phosphor.star Regular
-                                            |> Phosphor.toHtml
-                                                [ Html.Attributes.style "color" "#e6e6e6"
-                                                , Html.Attributes.style "width" "20px"
-                                                , Html.Attributes.style "height" "20px"
-                                                ]
-                                        )
-                                    , span
-                                        [ css
-                                            [ color theme.colors.text
-                                            , fontSize (rem 1.1)
-                                            , fontWeight (int 600)
-                                            ]
-                                        ]
-                                        [ text <| String.fromFloat movie.vote_average ]
+                                        [ text movie.year ]
                                     , span
                                         [ css
                                             [ color theme.colors.textMuted
-                                            , fontSize (rem 0.9)
+                                            , fontSize (rem 1)
+                                            , padding2 (px 6) (px 12)
+                                            , backgroundColor (rgba 255 255 255 0.1)
+                                            , borderRadius (px 6)
                                             ]
                                         ]
-                                        [ text <| "(" ++ String.fromInt movie.vote_count ++ " votes)" ]
+                                        [ mediaTypeLabel movie.mediaType ]
                                     ]
 
-                                -- Runtime
-                                , case movie.runtime of
-                                    Just runtime ->
-                                        div
-                                            [ css
-                                                [ displayFlex
-                                                , alignItems center
-                                                , Css.property "gap" "0.5rem"
-                                                ]
-                                            ]
-                                            [ Html.Styled.fromUnstyled
-                                                (Phosphor.timer Regular
-                                                    |> Phosphor.toHtml
-                                                        [ Html.Attributes.style "color" "#e6e6e6"
-                                                        , Html.Attributes.style "width" "20px"
-                                                        , Html.Attributes.style "height" "20px"
-                                                        ]
-                                                )
-                                            , span
-                                                [ css
-                                                    [ color theme.colors.text
-                                                    , fontSize (rem 1.1)
-                                                    ]
-                                                ]
-                                                [ text <| String.fromInt runtime ++ " min" ]
-                                            ]
-
-                                    Nothing ->
-                                        text ""
-
-                                -- Popularity
-                                , div
+                                -- Description
+                                , p
                                     [ css
-                                        [ displayFlex
-                                        , alignItems center
-                                        , Css.property "gap" "0.5rem"
+                                        [ color theme.colors.text
+                                        , fontSize (rem 1.1)
+                                        , lineHeight (num 1.6)
+                                        , marginTop (px 8)
                                         ]
                                     ]
-                                    [ Html.Styled.fromUnstyled
-                                        (Phosphor.trendUp Regular
-                                            |> Phosphor.toHtml
-                                                [ Html.Attributes.style "color" "#e6e6e6"
-                                                , Html.Attributes.style "width" "20px"
-                                                , Html.Attributes.style "height" "20px"
-                                                ]
-                                        )
-                                    , span
-                                        [ css
-                                            [ color theme.colors.text
-                                            , fontSize (rem 1.1)
-                                            ]
-                                        ]
-                                        [ text <| String.fromFloat movie.popularity ]
-                                    ]
-                                ]
-                            ]
+                                    [ text movie.description ]
 
-                        -- Genres
-                        , if not (List.isEmpty movie.genres) then
-                            div
-                                [ css
-                                    [ displayFlex
-                                    , flexWrap Css.wrap
-                                    , alignItems center
-                                    , Css.property "gap" "0.75rem"
-                                    , marginTop (px 8)
-                                    ]
-                                ]
-                                (List.map
-                                    (\genre ->
-                                        span
-                                            [ css
-                                                [ backgroundColor theme.colors.primary
-                                                , color theme.colors.text
-                                                , padding2 (px 8) (px 16)
-                                                , borderRadius (px 8)
-                                                , fontSize (rem 0.95)
-                                                , fontWeight (int 500)
-                                                ]
-                                            ]
-                                            [ text genre ]
-                                    )
-                                    movie.genres
-                                )
-
-                          else
-                            text ""
-
-                        -- Content ratings
-                        , if not (List.isEmpty movie.content_ratings) then
-                            div
-                                [ css
-                                    [ displayFlex
-                                    , flexWrap Css.wrap
-                                    , alignItems center
-                                    , Css.property "gap" "0.75rem"
-                                    , marginTop (px 8)
-                                    ]
-                                ]
-                                (List.map contentRatingImage movie.content_ratings)
-
-                          else
-                            text ""
-
-                        -- Networks
-                        , if not (List.isEmpty movie.networks) then
-                            div
-                                [ css
-                                    [ displayFlex
-                                    , flexWrap Css.wrap
-                                    , alignItems center
-                                    , Css.property "gap" "1rem"
-                                    , marginTop (px 16)
-                                    , paddingTop (px 16)
-                                    , borderTop3 (px 1) solid (rgba 255 255 255 0.1)
-                                    ]
-                                ]
-                                (List.map
-                                    (\network ->
-                                        div
-                                            [ css
-                                                [ displayFlex
-                                                , alignItems center
-                                                , padding2 (px 8) (px 12)
-                                                , backgroundColor (rgba 255 255 255 0.1)
-                                                , borderRadius (px 8)
-                                                ]
-                                            , title network.name
-                                            ]
-                                            [ img
-                                                [ src network.logo
-                                                , css
-                                                    [ Css.maxHeight (px 32)
-                                                    , Css.width auto
-                                                    , Css.property "filter" "brightness(0) invert(1)"
-                                                    ]
-                                                , Html.Styled.Attributes.alt network.name
-                                                ]
-                                                []
-                                            ]
-                                    )
-                                    movie.networks
-                                )
-
-                          else
-                            text ""
-                        ]
-                    ]
-
-                -- Cast section
-                , case maybeDetails of
-                    Just details ->
-                        if not (List.isEmpty details.cast) then
-                            let
-                                isExpanded =
-                                    castExpanded == Just currentMovieIndex
-
-                                castToShow =
-                                    if isExpanded then
-                                        details.cast
-
-                                    else
-                                        List.take 6 details.cast
-
-                                hasMore =
-                                    List.length details.cast > 6
-                            in
-                            div
-                                [ css
-                                    [ marginTop (px 32)
-                                    , paddingTop (px 32)
-                                    , paddingBottom (px 32)
-                                    , paddingLeft (px 32)
-                                    , paddingRight (px 32)
-                                    , borderTop3 (px 1) solid (rgba 255 255 255 0.1)
-                                    , backgroundColor <| rgba 0 0 0 0.6
-                                    , borderRadius (px 16)
-                                    , Css.property "backdrop-filter" "blur(8px)"
-                                    ]
-                                ]
-                                [ div
-                                    [ css
-                                        [ displayFlex
-                                        , alignItems center
-                                        , justifyContent spaceBetween
-                                        , marginBottom (px 24)
-                                        ]
-                                    ]
-                                    [ h2
-                                        [ css
-                                            [ color theme.colors.text
-                                            , fontSize (rem 1.8)
-                                            , fontWeight (int 700)
-                                            , margin (px 0)
-                                            ]
-                                        ]
-                                        [ text "Cast" ]
-                                    ]
+                                -- Stats row
                                 , div
                                     [ css
                                         [ displayFlex
                                         , flexWrap Css.wrap
-                                        , Css.property "gap" "0.5rem"
-                                        , justifyContent flexStart
+                                        , alignItems center
+                                        , Css.property "gap" "2rem"
+                                        , marginTop (px 16)
                                         ]
                                     ]
-                                    (List.map
-                                        (\castMember ->
-                                            div
-                                                [ css
-                                                    [ Css.width (px 200)
-                                                    , flexShrink (int 0)
-                                                    ]
-                                                ]
-                                                [ showCastMember castMember ]
-                                        )
-                                        castToShow
-                                    )
-                                , if hasMore then
-                                    button
-                                        [ onClick <| ToggleCastExpansion currentMovieIndex
-                                        , css
-                                            [ backgroundColor Colors.transparent
-                                            , borderStyle none
-                                            , color theme.colors.primary
-                                            , cursor pointer
-                                            , padding (px 12)
-                                            , marginTop (px 16)
-                                            , fontSize (rem 1)
-                                            , fontWeight (int 500)
-                                            , displayFlex
+                                    [ -- Rating
+                                      div
+                                        [ css
+                                            [ displayFlex
                                             , alignItems center
-                                            , justifyContent center
                                             , Css.property "gap" "0.5rem"
-                                            , hover
-                                                [ Css.property "opacity" "0.8"
-                                                ]
                                             ]
                                         ]
-                                        [ text <|
-                                            if isExpanded then
-                                                "Show Less"
-
-                                            else
-                                                "Show All (" ++ String.fromInt (List.length details.cast) ++ ")"
-                                        , Html.Styled.fromUnstyled
-                                            (if isExpanded then
-                                                Phosphor.caretUp Regular
-                                                    |> Phosphor.toHtml
-                                                        [ Html.Attributes.style "color" "#d4af37"
-                                                        , Html.Attributes.style "width" "16px"
-                                                        , Html.Attributes.style "height" "16px"
-                                                        ]
-
-                                             else
-                                                Phosphor.caretDown Regular
-                                                    |> Phosphor.toHtml
-                                                        [ Html.Attributes.style "color" "#d4af37"
-                                                        , Html.Attributes.style "width" "16px"
-                                                        , Html.Attributes.style "height" "16px"
-                                                        ]
+                                        [ Html.Styled.fromUnstyled
+                                            (Phosphor.star Regular
+                                                |> Phosphor.toHtml
+                                                    [ Html.Attributes.style "color" "#e6e6e6"
+                                                    , Html.Attributes.style "width" "20px"
+                                                    , Html.Attributes.style "height" "20px"
+                                                    ]
                                             )
+                                        , span
+                                            [ css
+                                                [ color theme.colors.text
+                                                , fontSize (rem 1.1)
+                                                , fontWeight (int 600)
+                                                ]
+                                            ]
+                                            [ text <| String.fromFloat movie.vote_average ]
+                                        , span
+                                            [ css
+                                                [ color theme.colors.textMuted
+                                                , fontSize (rem 0.9)
+                                                ]
+                                            ]
+                                            [ text <| "(" ++ String.fromInt movie.vote_count ++ " votes)" ]
                                         ]
+
+                                    -- Runtime
+                                    , case movie.runtime of
+                                        Just runtime ->
+                                            div
+                                                [ css
+                                                    [ displayFlex
+                                                    , alignItems center
+                                                    , Css.property "gap" "0.5rem"
+                                                    ]
+                                                ]
+                                                [ Html.Styled.fromUnstyled
+                                                    (Phosphor.timer Regular
+                                                        |> Phosphor.toHtml
+                                                            [ Html.Attributes.style "color" "#e6e6e6"
+                                                            , Html.Attributes.style "width" "20px"
+                                                            , Html.Attributes.style "height" "20px"
+                                                            ]
+                                                    )
+                                                , span
+                                                    [ css
+                                                        [ color theme.colors.text
+                                                        , fontSize (rem 1.1)
+                                                        ]
+                                                    ]
+                                                    [ text <| String.fromInt runtime ++ " min" ]
+                                                ]
+
+                                        Nothing ->
+                                            text ""
+
+                                    -- Popularity
+                                    , div
+                                        [ css
+                                            [ displayFlex
+                                            , alignItems center
+                                            , Css.property "gap" "0.5rem"
+                                            ]
+                                        ]
+                                        [ Html.Styled.fromUnstyled
+                                            (Phosphor.trendUp Regular
+                                                |> Phosphor.toHtml
+                                                    [ Html.Attributes.style "color" "#e6e6e6"
+                                                    , Html.Attributes.style "width" "20px"
+                                                    , Html.Attributes.style "height" "20px"
+                                                    ]
+                                            )
+                                        , span
+                                            [ css
+                                                [ color theme.colors.text
+                                                , fontSize (rem 1.1)
+                                                ]
+                                            ]
+                                            [ text <| String.fromFloat movie.popularity ]
+                                        ]
+                                    ]
+
+                                -- Genres
+                                , if not (List.isEmpty movie.genres) then
+                                    div
+                                        [ css
+                                            [ displayFlex
+                                            , flexWrap Css.wrap
+                                            , alignItems center
+                                            , Css.property "gap" "0.75rem"
+                                            , marginTop (px 8)
+                                            ]
+                                        ]
+                                        (List.map
+                                            (\genre ->
+                                                span
+                                                    [ css
+                                                        [ backgroundColor theme.colors.primary
+                                                        , color theme.colors.text
+                                                        , padding2 (px 8) (px 16)
+                                                        , borderRadius (px 8)
+                                                        , fontSize (rem 0.95)
+                                                        , fontWeight (int 500)
+                                                        ]
+                                                    ]
+                                                    [ text genre ]
+                                            )
+                                            movie.genres
+                                        )
+
+                                  else
+                                    text ""
+
+                                -- Networks
+                                , if not (List.isEmpty movie.networks) then
+                                    div
+                                        [ css
+                                            [ displayFlex
+                                            , flexWrap Css.wrap
+                                            , alignItems center
+                                            , Css.property "gap" "1rem"
+                                            , marginTop (px 16)
+                                            , paddingTop (px 16)
+                                            , borderTop3 (px 1) solid (rgba 255 255 255 0.1)
+                                            ]
+                                        ]
+                                        (List.map
+                                            (\network ->
+                                                div
+                                                    [ css
+                                                        [ displayFlex
+                                                        , alignItems center
+                                                        , padding2 (px 8) (px 12)
+                                                        , backgroundColor (rgba 255 255 255 0.1)
+                                                        , borderRadius (px 8)
+                                                        ]
+                                                    , title network.name
+                                                    ]
+                                                    [ img
+                                                        [ src network.logo
+                                                        , css
+                                                            [ Css.maxHeight (px 32)
+                                                            , Css.width auto
+                                                            , Css.property "filter" "brightness(0) invert(1)"
+                                                            ]
+                                                        , Html.Styled.Attributes.alt network.name
+                                                        ]
+                                                        []
+                                                    ]
+                                            )
+                                            movie.networks
+                                        )
+
+                                  else
+                                    text ""
+
+                                -- Content ratings
+                                , if not (List.isEmpty movie.content_ratings) then
+                                    div
+                                        [ css
+                                            [ displayFlex
+                                            , flexWrap Css.wrap
+                                            , alignItems center
+                                            , Css.property "gap" "0.75rem"
+                                            , marginTop (px 8)
+                                            ]
+                                        ]
+                                        (List.map contentRatingImage movie.content_ratings)
 
                                   else
                                     text ""
                                 ]
-
-                        else
-                            text ""
-
-                    Nothing ->
-                        text ""
+                            ]
+                        ]
+                    ]
                 ]
+
+            -- Cast section
+            , case maybeDetails of
+                Just details ->
+                    if not (List.isEmpty details.cast) then
+                        let
+                            isExpanded =
+                                castExpanded == Just currentMovieIndex
+
+                            castToShow =
+                                if isExpanded then
+                                    details.cast
+
+                                else
+                                    List.take 6 details.cast
+
+                            hasMore =
+                                List.length details.cast > 6
+                        in
+                        div
+                            [ css
+                                [ marginTop (px 32)
+                                , paddingTop (px 32)
+                                , paddingBottom (px 32)
+                                , paddingLeft (px 32)
+                                , paddingRight (px 32)
+                                , borderTop3 (px 1) solid (rgba 255 255 255 0.1)
+                                , backgroundColor <| rgba 0 0 0 0.6
+                                , borderRadius (px 16)
+                                , Css.property "backdrop-filter" "blur(8px)"
+                                ]
+                            ]
+                            [ div
+                                [ css
+                                    [ displayFlex
+                                    , alignItems center
+                                    , justifyContent spaceBetween
+                                    , marginBottom (px 24)
+                                    ]
+                                ]
+                                [ h2
+                                    [ css
+                                        [ color theme.colors.text
+                                        , fontSize (rem 1.8)
+                                        , fontWeight (int 700)
+                                        , margin (px 0)
+                                        ]
+                                    ]
+                                    [ text "Cast" ]
+                                ]
+                            , div
+                                [ css
+                                    [ displayFlex
+                                    , flexWrap Css.wrap
+                                    , Css.property "gap" "0.5rem"
+                                    , justifyContent flexStart
+                                    ]
+                                ]
+                                (List.map
+                                    (\castMember ->
+                                        div
+                                            [ css
+                                                [ Css.width (px 200)
+                                                , flexShrink (int 0)
+                                                ]
+                                            ]
+                                            [ showCastMember castMember ]
+                                    )
+                                    castToShow
+                                )
+                            , if hasMore then
+                                button
+                                    [ onClick <| ToggleCastExpansion currentMovieIndex
+                                    , css
+                                        [ backgroundColor Colors.transparent
+                                        , borderStyle none
+                                        , color theme.colors.primary
+                                        , cursor pointer
+                                        , padding (px 12)
+                                        , marginTop (px 16)
+                                        , fontSize (rem 1)
+                                        , fontWeight (int 500)
+                                        , displayFlex
+                                        , alignItems center
+                                        , justifyContent center
+                                        , Css.property "gap" "0.5rem"
+                                        , hover
+                                            [ Css.property "opacity" "0.8"
+                                            ]
+                                        ]
+                                    ]
+                                    [ text <|
+                                        if isExpanded then
+                                            "Show Less"
+
+                                        else
+                                            "Show All (" ++ String.fromInt (List.length details.cast) ++ ")"
+                                    , Html.Styled.fromUnstyled
+                                        (if isExpanded then
+                                            Phosphor.caretUp Regular
+                                                |> Phosphor.toHtml
+                                                    [ Html.Attributes.style "color" "#d4af37"
+                                                    , Html.Attributes.style "width" "16px"
+                                                    , Html.Attributes.style "height" "16px"
+                                                    ]
+
+                                         else
+                                            Phosphor.caretDown Regular
+                                                |> Phosphor.toHtml
+                                                    [ Html.Attributes.style "color" "#d4af37"
+                                                    , Html.Attributes.style "width" "16px"
+                                                    , Html.Attributes.style "height" "16px"
+                                                    ]
+                                        )
+                                    ]
+
+                              else
+                                text ""
+                            ]
+
+                    else
+                        text ""
+
+                Nothing ->
+                    text ""
             ]
         ]
 
