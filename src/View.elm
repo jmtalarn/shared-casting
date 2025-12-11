@@ -59,6 +59,121 @@ mediaTypeLabel mediaType parenthesis =
                 " movie"
 
 
+contentRatingImagePath : ( String, String ) -> Maybe String
+contentRatingImagePath ( countryCode, rating ) =
+    let
+        normalizedCountryCode =
+            if countryCode == "" then
+                "US"
+
+            else
+                countryCode
+
+        key =
+            normalizedCountryCode ++ "_" ++ rating
+    in
+    case key of
+        "ES_12" ->
+            Just (VitePluginHelper.asset "/src/assets/content-ratings/ES_12.png")
+
+        "ES_16" ->
+            Just (VitePluginHelper.asset "/src/assets/content-ratings/ES_16.png")
+
+        "ES_18" ->
+            Just (VitePluginHelper.asset "/src/assets/content-ratings/ES_18.png")
+
+        "ES_7" ->
+            Just (VitePluginHelper.asset "/src/assets/content-ratings/ES_7.png")
+
+        "ES_A" ->
+            Just (VitePluginHelper.asset "/src/assets/content-ratings/ES_A.png")
+
+        "ES_X" ->
+            Just (VitePluginHelper.asset "/src/assets/content-ratings/ES_X.png")
+
+        "US_G" ->
+            Just (VitePluginHelper.asset "/src/assets/content-ratings/US_G.png")
+
+        "US_NC-17" ->
+            Just (VitePluginHelper.asset "/src/assets/content-ratings/US_NC-17.png")
+
+        "US_PG-13" ->
+            Just (VitePluginHelper.asset "/src/assets/content-ratings/US_PG-13.png")
+
+        "US_PG" ->
+            Just (VitePluginHelper.asset "/src/assets/content-ratings/US_PG.png")
+
+        "US_R" ->
+            Just (VitePluginHelper.asset "/src/assets/content-ratings/US_R.png")
+
+        "US_TV-14" ->
+            Just (VitePluginHelper.asset "/src/assets/content-ratings/US_TV-14.png")
+
+        "US_TV-G" ->
+            Just (VitePluginHelper.asset "/src/assets/content-ratings/US_TV-G.png")
+
+        "US_TV-MA" ->
+            Just (VitePluginHelper.asset "/src/assets/content-ratings/US_TV-MA.png")
+
+        "US_TV-PG" ->
+            Just (VitePluginHelper.asset "/src/assets/content-ratings/US_TV-PG.png")
+
+        "US_TV-Y" ->
+            Just (VitePluginHelper.asset "/src/assets/content-ratings/US_TV-Y.png")
+
+        "US_TV-Y7" ->
+            Just (VitePluginHelper.asset "/src/assets/content-ratings/US_TV-Y7.png")
+
+        _ ->
+            Nothing
+
+
+contentRatingImage : ( String, String ) -> Html Msg
+contentRatingImage contentRating =
+    case contentRatingImagePath contentRating of
+        Just imagePath ->
+            let
+                ( countryCode, rating ) =
+                    contentRating
+
+                normalizedCountryCode =
+                    if countryCode == "" then
+                        "US"
+
+                    else
+                        countryCode
+            in
+            img
+                [ src imagePath
+                , css
+                    [ Css.height (px 24)
+                    , Css.width auto
+                    ]
+                , Html.Styled.Attributes.alt <| normalizedCountryCode ++ " " ++ rating
+                ]
+                []
+
+        Nothing ->
+            let
+                ( countryCode, rating ) =
+                    contentRating
+
+                normalizedCountryCode =
+                    if countryCode == "" then
+                        "US"
+
+                    else
+                        countryCode
+            in
+            span
+                [ css
+                    [ fontSize (px 12)
+                    , color theme.colors.textMuted
+                    ]
+                ]
+                [ text <| normalizedCountryCode ++ " " ++ rating ]
+
+
 showMovie : MovieIndex -> Maybe MovieTvShow -> Maybe Details -> List (Html Msg)
 showMovie movieIndex maybeMovieTvShow maybeDetails =
     -- let
@@ -138,60 +253,69 @@ showMovie movieIndex maybeMovieTvShow maybeDetails =
                         ]
                     , div
                         [ css
+                            [ color theme.colors.textMuted
+                            , fontSize (px 14)
+                            , displayFlex
+                            , alignItems center
+                            , Css.property "gap" "0.5rem"
+                            ]
+                        ]
+                        (case movieTvShow.runtime of
+                            Just runtime ->
+                                [ Html.Styled.fromUnstyled (Phosphor.timer Regular |> Phosphor.toHtml [])
+                                , span
+                                    []
+                                    [ text (String.fromInt runtime ++ " min")
+                                    ]
+                                ]
+
+                            Nothing ->
+                                []
+                        )
+                    , div
+                        [ css
                             [ displayFlex
                             , flexWrap Css.wrap
                             , alignItems center
                             , Css.property "gap" "0.5rem"
                             , marginBottom (px 16)
+                            , marginTop (px 16)
                             ]
                         ]
-                        (List.concat
-                            [ case movieTvShow.runtime of
-                                Just runtime ->
-                                    [ span
+                        (if List.isEmpty movieTvShow.genres then
+                            []
+
+                         else
+                            List.map
+                                (\genre ->
+                                    span
                                         [ css
-                                            [ color theme.colors.textMuted
-                                            , fontSize (px 14)
+                                            [ backgroundColor theme.colors.primary
+                                            , color theme.colors.text
+                                            , padding2 (px 4) (px 8)
+                                            , borderRadius (px 4)
+                                            , fontSize (px 12)
                                             ]
                                         ]
-                                        [ text (String.fromInt runtime ++ " min")
-                                        ]
-                                    ]
-
-                                Nothing ->
-                                    []
-                            , if List.isEmpty movieTvShow.genres then
-                                []
-
-                              else
-                                List.map
-                                    (\genre ->
-                                        span
-                                            [ css
-                                                [ backgroundColor theme.colors.primary
-                                                , color theme.colors.text
-                                                , padding2 (px 4) (px 8)
-                                                , borderRadius (px 4)
-                                                , fontSize (px 12)
-                                                ]
-                                            ]
-                                            [ text genre ]
-                                    )
-                                    movieTvShow.genres
-                            , if List.isEmpty movieTvShow.content_ratings then
-                                []
-
-                              else
-                                List.map
-                                    (\content_rating ->
-                                        div
-                                            []
-                                            [ span [] [ text <| Tuple.first content_rating ]
-                                            , span [] [ text <| Tuple.second content_rating ]
-                                            ]
-                                    )
-                                    movieTvShow.content_ratings
+                                        [ text genre ]
+                                )
+                                movieTvShow.genres
+                        )
+                    , div
+                        [ css
+                            [ displayFlex
+                            , flexWrap Css.wrap
+                            , alignItems center
+                            , Css.property "gap" "0.5rem"
+                            , marginBottom (px 16)
+                            , marginTop (px 16)
                             ]
+                        ]
+                        (if List.isEmpty movieTvShow.content_ratings then
+                            []
+
+                         else
+                            List.map contentRatingImage movieTvShow.content_ratings
                         )
                     ]
 
@@ -429,50 +553,6 @@ viewItem item =
                                 ]
                             ]
                             [ text item.description ]
-                        , div
-                            [ css
-                                [ displayFlex
-                                , flexWrap Css.wrap
-                                , alignItems center
-                                , Css.property "gap" "0.5rem"
-                                , marginBottom (px 32)
-                                ]
-                            ]
-                            (List.concat
-                                [ case item.runtime of
-                                    Just runtime ->
-                                        [ span
-                                            [ css
-                                                [ color theme.colors.textMuted
-                                                , fontSize (px 11)
-                                                ]
-                                            ]
-                                            [ text (String.fromInt runtime ++ " min")
-                                            ]
-                                        ]
-
-                                    Nothing ->
-                                        []
-                                , if List.isEmpty item.genres then
-                                    []
-
-                                  else
-                                    List.map
-                                        (\genre ->
-                                            span
-                                                [ css
-                                                    [ backgroundColor theme.colors.primary
-                                                    , color theme.colors.text
-                                                    , padding2 (px 3) (px 6)
-                                                    , borderRadius (px 3)
-                                                    , fontSize (px 11)
-                                                    ]
-                                                ]
-                                                [ text genre ]
-                                        )
-                                        item.genres
-                                ]
-                            )
                         ]
                     ]
                 ]
