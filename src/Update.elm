@@ -45,9 +45,6 @@ update msg model =
 
         ReceiveDetails movieIndex (Ok details) ->
             let
-                _ =
-                    Debug.log "details" details
-
                 updateMovieWithDetails : Maybe MovieTvShow -> Maybe MovieTvShow
                 updateMovieWithDetails maybeMovie =
                     case maybeMovie of
