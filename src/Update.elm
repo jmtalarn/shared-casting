@@ -8,7 +8,7 @@ import MovieSearch exposing (fetchCastMemberDetails, fetchData, fetchDetails)
 import Msg exposing (AlsoInDirection(..), MovieIndex(..), MovieTvShow, Msg(..))
 import Process
 import Task
-import View exposing (castMemberDetailsAlsoInId, dialogCastMemberDetailsId, dialogMovieSearchId, dialogMovieSearchInputId)
+import View exposing (castMemberDetailsAlsoInId, dialogCastMemberDetailsId, dialogMovieDetailsId, dialogMovieSearchId, dialogMovieSearchInputId)
 
 
 
@@ -141,6 +141,27 @@ update msg model =
             , Cmd.batch [ toggleDialog ("#" ++ dialogMovieSearchId), Task.attempt (\_ -> NoOp) (Dom.focus dialogMovieSearchInputId) ]
             )
 
+        ShowMovieDetails movieIndex ->
+            ( { model
+                | targetMovieIndex = Just movieIndex
+                , openedDialog = Just dialogMovieDetailsId
+                , castExpanded = Nothing
+              }
+            , toggleDialog ("#" ++ dialogMovieDetailsId)
+            )
+
+        ToggleCastExpansion movieIndex ->
+            ( { model
+                | castExpanded =
+                    if model.castExpanded == Just movieIndex then
+                        Nothing
+
+                    else
+                        Just movieIndex
+              }
+            , Cmd.none
+            )
+
         HideDialog dialogId ->
             ( cleanDialogData model
             , toggleDialog ("#" ++ dialogId)
@@ -194,6 +215,15 @@ update msg model =
                 currentIndex =
                     model.targetMovieIndex
 
+                -- Close any open dialogs first
+                closeDialogsCmd =
+                    case model.openedDialog of
+                        Just dialogId ->
+                            toggleDialog ("#" ++ dialogId)
+
+                        Nothing ->
+                            Cmd.none
+
                 updatedModel =
                     { model
                         | movies =
@@ -213,17 +243,48 @@ update msg model =
 
                                 _ ->
                                     Just First
+                        , castExpanded = Nothing
+                        , openedDialog = Just dialogMovieDetailsId
+                        , castMemberDetails = Nothing
                     }
             in
             case currentIndex of
                 Just index ->
-                    ( updatedModel, fetchDetails index movie )
+                    ( updatedModel
+                    , Cmd.batch
+                        [ closeDialogsCmd
+                        , fetchDetails index movie
+                        , toggleDialog ("#" ++ dialogMovieDetailsId)
+                        ]
+                    )
 
                 Nothing ->
-                    ( model, Cmd.none )
+                    ( updatedModel
+                    , Cmd.batch
+                        [ closeDialogsCmd
+                        , toggleDialog ("#" ++ dialogMovieDetailsId)
+                        ]
+                    )
 
         ShowCastMember id ->
-            ( { model | openedDialog = Just dialogCastMemberDetailsId }, fetchCastMemberDetails <| String.fromInt id )
+            let
+                -- Close movie details dialog if it's open
+                closeMovieDetailsCmd =
+                    if model.openedDialog == Just dialogMovieDetailsId then
+                        toggleDialog ("#" ++ dialogMovieDetailsId)
+
+                    else
+                        Cmd.none
+            in
+            ( { model
+                | openedDialog = Just dialogCastMemberDetailsId
+                , castExpanded = Nothing
+              }
+            , Cmd.batch
+                [ closeMovieDetailsCmd
+                , fetchCastMemberDetails <| String.fromInt id
+                ]
+            )
 
         ImageGalleryMsg imageGalleryMsg ->
             ( { model | imageGallery = Gallery.update imageGalleryMsg model.imageGallery }
@@ -253,6 +314,7 @@ cleanDialogData model =
         --, targetMovieIndex = Nothing
         , castMemberDetails = Nothing
         , error = Nothing
+        , castExpanded = Nothing
     }
 
 

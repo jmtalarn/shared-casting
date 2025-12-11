@@ -106,3 +106,5 @@ type Msg
     | InputChanged String
     | DebouncedSearch
     | SelectItem MovieTvShow
+    | ShowMovieDetails MovieIndex
+    | ToggleCastExpansion MovieIndex

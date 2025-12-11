@@ -11,7 +11,7 @@ import Msg exposing (..)
 import Phosphor exposing (IconWeight(..))
 import Title exposing (svgTitle)
 import Update exposing (update)
-import View exposing (dialogCastMemberDetails, dialogMovieSearch, footerBand, mainStyle, pageHeader, showCastSection, showMovie, twoColumnsCssLayout)
+import View exposing (dialogCastMemberDetails, dialogMovieDetails, dialogMovieSearch, footerBand, mainStyle, pageHeader, showCastSection, showMovie, twoColumnsCssLayout)
 
 
 
@@ -42,6 +42,7 @@ init _ =
       , castMemberDetails = Nothing
       , imageGallery = Gallery.init (List.length [])
       , error = Nothing
+      , castExpanded = Nothing
       }
     , Cmd.none
     )
@@ -109,6 +110,7 @@ view model =
             , showCastSection model.movies model.details
             , dialogMovieSearch model
             , dialogCastMemberDetails model
+            , dialogMovieDetails model
             ]
         , footerBand
         ]

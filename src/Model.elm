@@ -16,4 +16,5 @@ type alias Model =
     , castMemberDetails : Maybe CastMemberDetails
     , imageGallery : Gallery.State
     , error : Maybe String
+    , castExpanded : Maybe MovieIndex
     }
