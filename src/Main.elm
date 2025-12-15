@@ -19,7 +19,7 @@ import View exposing (dialogCastMemberDetails, dialogMovieDetails, dialogMovieSe
 -- import VitePluginHelper
 
 
-main : Program () Model Msg
+main : Program Flags Model Msg
 main =
     Browser.document
         { init = init
@@ -29,8 +29,13 @@ main =
         }
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
+type alias Flags =
+    { apiBase : String
+    }
+
+
+init : Flags -> ( Model, Cmd Msg )
+init flags =
     ( { greeting = "Hello Goodbye"
       , searchResult = Nothing
       , query = Nothing
@@ -43,6 +48,7 @@ init _ =
       , imageGallery = Gallery.init (List.length [])
       , error = Nothing
       , castExpanded = Nothing
+      , apiBase = flags.apiBase
       }
     , Cmd.none
     )
