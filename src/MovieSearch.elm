@@ -256,10 +256,6 @@ mediaTypeToString mediaType =
 
 fetchData : String -> Maybe String -> Cmd Msg
 fetchData apiBase query =
-    let
-        _ =
-            Debug.log "fetchData apiBase" apiBase
-    in
     case query of
         Just value ->
             let
@@ -285,9 +281,6 @@ fetchData apiBase query =
 fetchDetails : String -> MovieIndex -> MovieTvShow -> Cmd Msg
 fetchDetails apiBase index movieTvShow =
     let
-        _ =
-            Debug.log "fetchDetails apiBase" apiBase
-
         url =
             "/get/" ++ mediaTypeToString movieTvShow.mediaType ++ "/" ++ String.fromInt movieTvShow.id
     in
@@ -300,9 +293,6 @@ fetchDetails apiBase index movieTvShow =
 fetchCastMemberDetails : String -> String -> Cmd Msg
 fetchCastMemberDetails apiBase id =
     let
-        _ =
-            Debug.log "fetchDetails apiBase" apiBase
-
         url =
             "/people/" ++ id
     in

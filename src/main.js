@@ -11,10 +11,14 @@ if (process.env.NODE_ENV === 'development') {
     simple_mode: true,
   });
 }
-console.log('API:', import.meta.env.VITE_API_BASE);
+
+const apiBase = import.meta.env.DEV ? __API_BASE_DEV__ : __API_BASE_PROD__;
+
+console.log('API base:', apiBase);
+console.log('Mode:', import.meta.env.MODE);
 
 const root = document.querySelector('#app');
-const app = Elm.Main.init({ node: root, flags: { apiBase: import.meta.env.VITE_API_BASE } });
+const app = Elm.Main.init({ node: root, flags: { apiBase: apiBase } });
 
 app.ports.toggleDialog.subscribe(dialogSelector => {
   const dialog = document.querySelector(dialogSelector);

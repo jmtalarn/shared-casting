@@ -16,7 +16,9 @@
     "netlify:dev": "netlify dev",
     "netlify:dev:live": "netlify dev --live",
     "tauri": "tauri",
-    "tauri:dev": "tauri dev -- --mode tauri"
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "tauri:android:dev": "tauri dev --target aarch64-linux-android"
   },
   "devDependencies": {
     "@netlify/functions": "^3.0.0",
