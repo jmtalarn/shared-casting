@@ -9,14 +9,14 @@ export default defineConfig(({ mode }) => {
   console.log('VITE_API_BASE_DEV:', env.VITE_API_BASE_DEV);
 
   return {
-    plugins: [elmPlugin()],
+    plugins: [ elmPlugin() ],
     define: {
       __APP_ENV__: JSON.stringify(mode),
-      __API_BASE_DEV__: JSON.stringify(env.VITE_API_BASE_DEV),
-      __API_BASE_PROD__: JSON.stringify(env.VITE_API_BASE_PROD),
+      __API_BASE_DEV__: JSON.stringify(env.VITE_API_BASE_DEV ?? ""),
+      __API_BASE_PROD__: JSON.stringify(env.VITE_API_BASE_PROD ?? ""),
     },
     resolve: {
-      alias: [{ find: '@', replacement: path.resolve(__dirname, 'src') }],
+      alias: [ { find: '@', replacement: path.resolve(__dirname, 'src') } ],
     },
   };
 });
