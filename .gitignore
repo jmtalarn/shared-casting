@@ -33,7 +33,7 @@ elm-stuff
 # elm-repl generated files
 repl-temp-*
 .elm-tooling/
-elm-tooling.json
+
 
 
 .env
