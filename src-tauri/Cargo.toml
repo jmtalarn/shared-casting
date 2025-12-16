@@ -1,7 +1,7 @@
 [package]
-name = "app"
+name = "shared-casting"
 version = "0.1.0"
-description = "A Tauri App"
+description = "Shared Casting app"
 authors = ["you"]
 license = ""
 repository = ""
@@ -24,6 +24,3 @@ log = "0.4"
 tauri = { version = "2.9.5", features = [] }
 tauri-plugin-log = "2"
 
-[target.aarch64-linux-android]
-ar = "aarch64-linux-android-ar"
-linker = "aarch64-linux-android21-clang"
