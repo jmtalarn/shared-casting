@@ -4,6 +4,7 @@ import Http
 import Json.Decode exposing (Decoder, andThen, at, bool, fail, field, float, int, list, map, map2, map3, oneOf, string, succeed)
 import Json.Decode.Pipeline exposing (custom, optional, required)
 import List
+import Model exposing (Model)
 import Msg exposing (..)
 import Platform.Cmd as Cmd
 import String exposing (String)
@@ -253,8 +254,8 @@ mediaTypeToString mediaType =
             "movie"
 
 
-fetchData : Maybe String -> Cmd Msg
-fetchData query =
+fetchData : String -> Maybe String -> Cmd Msg
+fetchData apiBase query =
     case query of
         Just value ->
             let
@@ -269,7 +270,7 @@ fetchData query =
 
             else
                 Http.get
-                    { url = url
+                    { url = apiBase ++ url
                     , expect = Http.expectJson ReceiveResults (Json.Decode.list movieTvShowDecoder)
                     }
 
@@ -277,26 +278,26 @@ fetchData query =
             Cmd.none
 
 
-fetchDetails : MovieIndex -> MovieTvShow -> Cmd Msg
-fetchDetails index movieTvShow =
+fetchDetails : String -> MovieIndex -> MovieTvShow -> Cmd Msg
+fetchDetails apiBase index movieTvShow =
     let
         url =
             "/get/" ++ mediaTypeToString movieTvShow.mediaType ++ "/" ++ String.fromInt movieTvShow.id
     in
     Http.get
-        { url = url
+        { url = apiBase ++ url
         , expect = Http.expectJson (ReceiveDetails index) detailsDecoder
         }
 
 
-fetchCastMemberDetails : String -> Cmd Msg
-fetchCastMemberDetails id =
+fetchCastMemberDetails : String -> String -> Cmd Msg
+fetchCastMemberDetails apiBase id =
     let
         url =
             "/people/" ++ id
     in
     Http.get
-        { url = url
+        { url = apiBase ++ url
         , expect = Http.expectJson ReceiveCastMember castMemberDetailsDecoder
         }
 
