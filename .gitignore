@@ -32,7 +32,19 @@ dist-ssr
 elm-stuff
 # elm-repl generated files
 repl-temp-*
+.elm-tooling/
+elm-tooling.json
 
 
 .env
 .env.*
+
+src-tauri/target/
+src-tauri/gen/
+src-tauri/platforms/android/.gradle/
+src-tauri/platforms/android/.idea/
+src-tauri/platforms/android/build/
+src-tauri/platforms/android/local.properties
+
+target/
+Cargo.lock
