@@ -60,6 +60,7 @@ update msg model =
                                         , backdrop = movie.images.backdrop
                                         , logo = details.logo
                                         }
+                                    , directors = details.directors
                                 }
 
                         Nothing ->

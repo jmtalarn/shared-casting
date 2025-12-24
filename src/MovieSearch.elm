@@ -27,10 +27,17 @@ movieTvShowDecoder =
         |> required "vote_average" float
         |> required "vote_count" int
         |> custom imagesDecoder
-        |> optional "networks" (Json.Decode.list networkDecoder) []
+        |> custom
+            (oneOf
+                [ field "networks" (Json.Decode.list networkDecoder)
+                , field "production_companies" (Json.Decode.list networkDecoder)
+                , succeed []
+                ]
+            )
         |> custom contentRatingsDecoder
         |> custom runtimeDecoder
         |> custom genresDecoder
+        |> custom directorsDecoder
 
 
 imagesDecoder : Decoder Images
@@ -216,13 +223,50 @@ descriptionDecoder =
     oneOf [ field "description" string, field "overview" string ]
 
 
+directorsDecoder : Decoder (List Director)
+directorsDecoder =
+    oneOf
+        [ field "created_by" (Json.Decode.list personDecoder)
+            |> Json.Decode.map (List.map (\person -> { name = person.name, profile_path = person.profile_path }))
+        , at [ "credits", "crew" ] (Json.Decode.list personDecoder)
+            |> Json.Decode.map
+                (\crew ->
+                    crew
+                        |> List.filter (\person -> person.job == Just "Director")
+                        |> List.map (\person -> { name = person.name, profile_path = person.profile_path })
+                )
+        , succeed []
+        ]
+
+
+type alias Person =
+    { name : String
+    , profile_path : Maybe String
+    , job : Maybe String
+    }
+
+
+personDecoder : Decoder Person
+personDecoder =
+    Json.Decode.map3 Person
+        (field "name" string)
+        (field "profile_path" (Json.Decode.nullable string)
+            |> Json.Decode.map (Maybe.map (\path -> "https://image.tmdb.org/t/p/original" ++ path))
+        )
+        (oneOf
+            [ field "job" string |> Json.Decode.map Just
+            , succeed Nothing
+            ]
+        )
+
+
 
 -- Add an extra field here
 
 
-networkDecoder : Decoder Network
+networkDecoder : Decoder NetworkOrProductionCompany
 networkDecoder =
-    Json.Decode.map2 Network
+    Json.Decode.map2 NetworkOrProductionCompany
         (field "name" string)
         (field "logo_path" string |> Json.Decode.map (\path -> "https://image.tmdb.org/t/p/original" ++ path))
 
@@ -333,12 +377,19 @@ genderDecoder =
 detailsDecoder : Decoder Details
 detailsDecoder =
     succeed Details
-        |> optional "networks" (Json.Decode.list networkDecoder) []
+        |> custom
+            (oneOf
+                [ field "networks" (Json.Decode.list networkDecoder)
+                , field "production_companies" (Json.Decode.list networkDecoder)
+                , succeed []
+                ]
+            )
         |> custom contentRatingsDecoder
         |> custom runtimeDecoder
         |> custom genresDecoder
         |> custom imagesLogoDecoder
         |> custom creditsDecoder
+        |> custom directorsDecoder
 
 
 castMemberDecoder : Decoder CastMember

@@ -60,6 +60,78 @@ mediaTypeLabel mediaType =
         ]
 
 
+directorsLabel : List Director -> Html msg
+directorsLabel directors =
+    if List.isEmpty directors then
+        text ""
+
+    else
+        div
+            [ css
+                [ displayFlex
+                , alignItems center
+                , flexWrap Css.wrap
+                , Css.property "gap" "0.75rem"
+                , marginTop (px 4)
+                , marginBottom (px 4)
+                , color theme.colors.textMuted
+                , fontSize (rem 0.875)
+                ]
+            ]
+            [ Html.Styled.fromUnstyled
+                (Phosphor.megaphoneSimple Regular
+                    |> Phosphor.toHtml
+                        [ Html.Attributes.style "width" "16px"
+                        , Html.Attributes.style "height" "16px"
+                        ]
+                )
+            , div
+                [ css
+                    [ displayFlex
+                    , alignItems center
+                    , flexWrap Css.wrap
+                    , Css.property "gap" "0.5rem"
+                    ]
+                ]
+                (List.map directorItem directors)
+            ]
+
+
+directorItem : Director -> Html msg
+directorItem director =
+    div
+        [ css
+            [ displayFlex
+            , alignItems center
+            , Css.property "gap" "0.5rem"
+            ]
+        ]
+        [ div
+            [ css
+                ([ borderRadius (pct 50)
+                 , Css.width (px 24)
+                 , Css.height (px 24)
+                 , overflow Css.hidden
+                 , flexShrink (int 0)
+                 ]
+                    ++ (case director.profile_path of
+                            Just path ->
+                                [ backgroundImage (url path) ]
+
+                            Nothing ->
+                                [ backgroundImage (url <| VitePluginHelper.asset "/src/assets/profile.png") ]
+                       )
+                    ++ [ backgroundSize cover
+                       , backgroundRepeat noRepeat
+                       , backgroundPosition2 (pct 50) (pct 50)
+                       ]
+                )
+            ]
+            []
+        , span [] [ text director.name ]
+        ]
+
+
 mediaTypeIcon : MediaType -> Html msg
 mediaTypeIcon mediaType =
     Html.Styled.fromUnstyled
@@ -117,8 +189,15 @@ contentRatingImage contentRating =
             in
             span
                 [ css
-                    [ fontSize (px 12)
-                    , color theme.colors.textMuted
+                    [ position absolute
+                    , Css.width (px 1)
+                    , Css.height (px 1)
+                    , padding zero
+                    , margin (px -1)
+                    , overflow Css.hidden
+                    , Css.property "clip" "rect(0, 0, 0, 0)"
+                    , whiteSpace noWrap
+                    , borderWidth zero
                     ]
                 ]
                 [ text <| normalizedCountryCode ++ " " ++ rating ]
@@ -237,27 +316,30 @@ showMovie movieIndex maybeMovieTvShow maybeDetails =
                         ]
                         [ text (.description movieTvShow)
                         ]
-                    , div
-                        [ css
-                            [ color theme.colors.textMuted
-                            , fontSize (px 14)
-                            , displayFlex
-                            , alignItems center
-                            , Css.property "gap" "0.5rem"
-                            ]
-                        ]
-                        (case movieTvShow.runtime of
-                            Just runtime ->
-                                [ Html.Styled.fromUnstyled (Phosphor.timer Regular |> Phosphor.toHtml [])
-                                , span
-                                    []
-                                    [ text (String.fromInt runtime ++ " min")
-                                    ]
+                    , div [ css [ displayFlex, alignItems center, Css.property "gap" "0.5rem" ] ]
+                        [ div
+                            [ css
+                                [ color theme.colors.textMuted
+                                , fontSize (px 14)
+                                , displayFlex
+                                , alignItems center
+                                , Css.property "gap" "0.5rem"
                                 ]
+                            ]
+                            (case movieTvShow.runtime of
+                                Just runtime ->
+                                    [ Html.Styled.fromUnstyled (Phosphor.timer Regular |> Phosphor.toHtml [])
+                                    , span
+                                        []
+                                        [ text (String.fromInt runtime ++ " min")
+                                        ]
+                                    ]
 
-                            Nothing ->
-                                []
-                        )
+                                Nothing ->
+                                    []
+                            )
+                        , directorsLabel movieTvShow.directors
+                        ]
                     , div
                         [ css
                             [ displayFlex
@@ -989,6 +1071,7 @@ defaultDetails =
     , runtime = Nothing
     , genres = []
     , logo = Nothing
+    , directors = []
     }
 
 
@@ -1007,6 +1090,7 @@ defaultMovieTvShow =
     , content_ratings = []
     , runtime = Nothing
     , genres = []
+    , directors = []
     }
 
 
@@ -1399,6 +1483,7 @@ showMovieDetailsDialog movie maybeDetails castExpanded currentMovieIndex =
                                         ]
                                         [ mediaTypeLabel movie.mediaType ]
                                     ]
+                                , directorsLabel movie.directors
 
                                 -- Description
                                 , p
@@ -1541,7 +1626,7 @@ showMovieDetailsDialog movie maybeDetails castExpanded currentMovieIndex =
                                   else
                                     text ""
 
-                                -- Networks
+                                -- Networks or Production Companies
                                 , if not (List.isEmpty movie.networks) then
                                     div
                                         [ css
