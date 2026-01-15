@@ -160,6 +160,18 @@ update msg model =
             , Cmd.none
             )
 
+        ToggleReviewExpansion movieIndex reviewIndex ->
+            ( { model
+                | expandedReviews =
+                    if List.member ( movieIndex, reviewIndex ) model.expandedReviews then
+                        List.filter (\item -> item /= ( movieIndex, reviewIndex )) model.expandedReviews
+
+                    else
+                        ( movieIndex, reviewIndex ) :: model.expandedReviews
+              }
+            , Cmd.none
+            )
+
         HideDialog dialogId ->
             ( cleanDialogData model
             , toggleDialog ("#" ++ dialogId)
@@ -294,12 +306,24 @@ update msg model =
                 scrollAmount =
                     case direction of
                         Forward ->
-                            120 + 16
+                            816
 
                         Backward ->
-                            -(120 + 16)
+                            -816
+
+                targetId =
+                    case model.openedDialog of
+                        Just dialogId ->
+                            if dialogId == "movie-details" then
+                                "reviews-section"
+
+                            else
+                                "also-in"
+
+                        Nothing ->
+                            "also-in"
             in
-            ( model, scroll ( castMemberDetailsAlsoInId, scrollAmount ) )
+            ( model, scroll ( targetId, scrollAmount ) )
 
 
 cleanDialogData : Model -> Model
@@ -313,6 +337,7 @@ cleanDialogData model =
         , castMemberDetails = Nothing
         , error = Nothing
         , castExpanded = Nothing
+        , expandedReviews = []
     }
 
 

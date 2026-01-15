@@ -122,3 +122,4 @@ type Msg
     | SelectItem MovieTvShow
     | ShowMovieDetails MovieIndex
     | ToggleCastExpansion MovieIndex
+    | ToggleReviewExpansion MovieIndex Int
