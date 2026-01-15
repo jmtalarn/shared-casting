@@ -1,4 +1,4 @@
-module Msg exposing (AlsoInDirection(..), CastMember, CastMemberDetails, Details, Director, Gender(..), Images, MediaType(..), MovieIndex(..), MovieTvShow, Msg(..), NetworkOrProductionCompany)
+module Msg exposing (AlsoInDirection(..), CastMember, CastMemberDetails, Details, Director, Gender(..), Images, MediaType(..), MovieIndex(..), MovieTvShow, Msg(..), NetworkOrProductionCompany, Review)
 
 import Gallery
 import Http
@@ -52,6 +52,13 @@ type alias Director =
     { name : String, profile_path : Maybe String }
 
 
+type alias Review =
+    { author : String
+    , avatar_path : Maybe String
+    , content : String
+    }
+
+
 type alias CastMember =
     { id : Int
     , name : String
@@ -85,6 +92,7 @@ type alias Details =
     , logo : Maybe String
     , cast : List CastMember
     , directors : List Director
+    , reviews : List Review
     }
 
 

@@ -1072,6 +1072,7 @@ defaultDetails =
     , genres = []
     , logo = Nothing
     , directors = []
+    , reviews = []
     }
 
 
