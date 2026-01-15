@@ -48,6 +48,7 @@ init flags =
       , imageGallery = Gallery.init (List.length [])
       , error = Nothing
       , castExpanded = Nothing
+      , expandedReviews = []
       , apiBase = flags.apiBase
       }
     , Cmd.none

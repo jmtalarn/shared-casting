@@ -374,6 +374,27 @@ genderDecoder =
             )
 
 
+reviewDecoder : Decoder Review
+reviewDecoder =
+    Json.Decode.map3 Review
+        (field "author" string)
+        (oneOf
+            [ field "author_details" (field "avatar_path" (Json.Decode.nullable string))
+                |> Json.Decode.map (Maybe.map (\path -> "https://image.tmdb.org/t/p/original" ++ path))
+            , succeed Nothing
+            ]
+        )
+        (field "content" string)
+
+
+reviewsDecoder : Decoder (List Review)
+reviewsDecoder =
+    oneOf
+        [ at [ "reviews", "results" ] (Json.Decode.list reviewDecoder)
+        , succeed []
+        ]
+
+
 detailsDecoder : Decoder Details
 detailsDecoder =
     succeed Details
@@ -390,6 +411,7 @@ detailsDecoder =
         |> custom imagesLogoDecoder
         |> custom creditsDecoder
         |> custom directorsDecoder
+        |> custom reviewsDecoder
 
 
 castMemberDecoder : Decoder CastMember

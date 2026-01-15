@@ -17,5 +17,6 @@ type alias Model =
     , imageGallery : Gallery.State
     , error : Maybe String
     , castExpanded : Maybe MovieIndex
+    , expandedReviews : List ( MovieIndex, Int )
     , apiBase : String
     }

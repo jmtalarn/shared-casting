@@ -6,9 +6,8 @@ export const config: Config = {
 };
 
 const buildUrl = ({ type, id }: { type: 'movie' | 'tv'; id: string }) =>
-  `https://api.themoviedb.org/3/${type}/${id}?language=en-US&append_to_response=${
-    type === 'movie' ? 'credits' : 'aggregate_credits'
-  },images${type === 'tv' ? ',content_ratings' : ''}${type === 'movie' ? ',release_dates' : ''}`;
+  `https://api.themoviedb.org/3/${type}/${id}?language=en-US&append_to_response=${type === 'movie' ? 'credits' : 'aggregate_credits'
+  },images${type === 'tv' ? ',content_ratings' : ''}${type === 'movie' ? ',release_dates' : ''},reviews`;
 
 const options = {
   method: 'GET',

@@ -3,6 +3,7 @@ module View exposing (..)
 import ContentRating
 import Css exposing (..)
 import Css.Global exposing (children, typeSelector)
+import Css.Media as Media
 import Css.Transitions exposing (ease, transition)
 import Gallery
 import Gallery.Image as GalleryImage
@@ -1072,6 +1073,7 @@ defaultDetails =
     , genres = []
     , logo = Nothing
     , directors = []
+    , reviews = []
     }
 
 
@@ -1252,7 +1254,7 @@ dialogMovieDetails model =
                     in
                     case maybeMovie of
                         Just movie ->
-                            showMovieDetailsDialog movie maybeDetails model.castExpanded movieIndex
+                            showMovieDetailsDialog movie maybeDetails model.castExpanded model.expandedReviews movieIndex
 
                         Nothing ->
                             text ""
@@ -1263,8 +1265,239 @@ dialogMovieDetails model =
         ]
 
 
-showMovieDetailsDialog : MovieTvShow -> Maybe Details -> Maybe MovieIndex -> MovieIndex -> Html Msg
-showMovieDetailsDialog movie maybeDetails castExpanded currentMovieIndex =
+reviewsSectionId : String
+reviewsSectionId =
+    "reviews-section"
+
+
+showReviewsSection : List Review -> List ( MovieIndex, Int ) -> MovieIndex -> Html Msg
+showReviewsSection reviews expandedReviews currentMovieIndex =
+    let
+        reviewsInPairs =
+            List.indexedMap Tuple.pair reviews
+                |> List.foldr
+                    (\( index, review ) acc ->
+                        case acc of
+                            [] ->
+                                [ [ ( index, review ) ] ]
+
+                            (firstPair :: rest) as pairs ->
+                                if List.length firstPair < 2 then
+                                    (( index, review ) :: firstPair) :: rest
+
+                                else
+                                    [ ( index, review ) ] :: pairs
+                    )
+                    []
+                |> List.reverse
+    in
+    div
+        [ css
+            [ marginTop (px 32)
+            , paddingTop (px 32)
+            , paddingBottom (px 32)
+            , paddingLeft (px 32)
+            , paddingRight (px 32)
+            , borderTop3 (px 1) solid (rgba 255 255 255 0.1)
+            , backgroundColor <| rgba 0 0 0 0.6
+            , borderRadius (px 16)
+            , Css.property "backdrop-filter" "blur(8px)"
+            , maxWidth (px 1000)
+            , margin2 (px 0) auto
+            ]
+        ]
+        [ h2
+            [ css
+                [ color theme.colors.text
+                , fontSize (rem 1.5)
+                , fontWeight (int 600)
+                , marginBottom (px 24)
+                ]
+            ]
+            [ text "Reviews" ]
+        , div
+            [ css
+                [ displayFlex
+                , alignItems baseline
+                , justifyContent spaceAround
+                , marginBottom (px 32)
+                ]
+            ]
+            [ miniCoverButton Backward
+            , div
+                [ css
+                    [ displayFlex
+                    , Css.property "gap" "16px"
+                    , maxWidth (pct 85)
+                    , padding2 (px 24) (px 16)
+                    , overflow Css.auto
+                    , Css.property "scroll-snap-type" "x mandatory"
+                    , Css.property "-webkit-overflow-scrolling" "touch"
+                    , cursor grab
+                    , children
+                        [ typeSelector "div"
+                            [ Css.property "scroll-snap-align" "center" ]
+                        ]
+                    , Media.withMedia [ Media.only Media.screen [ Media.minWidth (px 768) ] ]
+                        [ overflow Css.hidden
+                        ]
+                    ]
+                , id reviewsSectionId
+                ]
+                (List.map
+                    (\reviewPair ->
+                        div
+                            [ css
+                                [ displayFlex
+                                , Css.property "gap" "1rem"
+                                , Css.width (px 800)
+                                , flexShrink (int 0)
+                                ]
+                            ]
+                            (List.map
+                                (\( reviewIndex, review ) ->
+                                    div
+                                        [ css
+                                            [ flex (int 1)
+                                            , minWidth (px 0)
+                                            ]
+                                        ]
+                                        [ showReview review expandedReviews currentMovieIndex reviewIndex ]
+                                )
+                                reviewPair
+                            )
+                    )
+                    reviewsInPairs
+                )
+            , miniCoverButton Forward
+            ]
+        ]
+
+
+showReview : Review -> List ( MovieIndex, Int ) -> MovieIndex -> Int -> Html Msg
+showReview review expandedReviews currentMovieIndex reviewIndex =
+    let
+        isExpanded =
+            List.member ( currentMovieIndex, reviewIndex ) expandedReviews
+
+        maxLength =
+            300
+
+        shouldTruncate =
+            String.length review.content > maxLength
+
+        displayContent =
+            if isExpanded || not shouldTruncate then
+                review.content
+
+            else
+                String.left maxLength review.content ++ "..."
+    in
+    div
+        [ css
+            [ backgroundColor <| rgba 255 255 255 0.05
+            , padding (px 20)
+            , borderRadius (px 12)
+            , borderLeft3 (px 3) solid theme.colors.primary
+            ]
+        ]
+        [ div
+            [ css
+                [ displayFlex
+                , alignItems center
+                , Css.property "gap" "0.75rem"
+                , marginBottom (px 12)
+                ]
+            ]
+            [ div
+                [ css
+                    ([ borderRadius (pct 50)
+                     , Css.width (px 40)
+                     , Css.height (px 40)
+                     , overflow Css.hidden
+                     , flexShrink (int 0)
+                     ]
+                        ++ (case review.avatar_path of
+                                Just path ->
+                                    [ backgroundImage (url path) ]
+
+                                Nothing ->
+                                    [ backgroundImage (url <| VitePluginHelper.asset "/src/assets/profile.png") ]
+                           )
+                        ++ [ backgroundSize cover
+                           , backgroundRepeat noRepeat
+                           , backgroundPosition2 (pct 50) (pct 50)
+                           ]
+                    )
+                ]
+                []
+            , div
+                [ css
+                    [ displayFlex
+                    , flexDirection column
+                    ]
+                ]
+                [ span
+                    [ css
+                        [ color theme.colors.text
+                        , fontSize (rem 1)
+                        , fontWeight (int 600)
+                        ]
+                    ]
+                    [ text review.author ]
+                ]
+            ]
+        , p
+            [ css
+                [ color theme.colors.textMuted
+                , fontSize (rem 0.95)
+                , lineHeight (num 1.6)
+                , whiteSpace preWrap
+                ]
+            ]
+            [ text displayContent ]
+        , if shouldTruncate then
+            button
+                [ onClick <| ToggleReviewExpansion currentMovieIndex reviewIndex
+                , css
+                    [ backgroundColor Colors.transparent
+                    , borderStyle none
+                    , color theme.colors.primary
+                    , cursor pointer
+                    , padding (px 8)
+                    , marginTop (px 8)
+                    , fontSize (rem 0.9)
+                    , fontWeight (int 500)
+                    , displayFlex
+                    , alignItems center
+                    , Css.property "gap" "0.5rem"
+                    , hover
+                        [ Css.property "opacity" "0.8"
+                        ]
+                    ]
+                ]
+                [ Html.Styled.fromUnstyled
+                    (Phosphor.dotsThree Regular
+                        |> Phosphor.toHtml
+                            [ Html.Attributes.style "width" "16px"
+                            , Html.Attributes.style "height" "16px"
+                            ]
+                    )
+                , text <|
+                    if isExpanded then
+                        "Show less"
+
+                    else
+                        "Show more"
+                ]
+
+          else
+            text ""
+        ]
+
+
+showMovieDetailsDialog : MovieTvShow -> Maybe Details -> Maybe MovieIndex -> List ( MovieIndex, Int ) -> MovieIndex -> Html Msg
+showMovieDetailsDialog movie maybeDetails castExpanded expandedReviews currentMovieIndex =
     let
         backdropUrl =
             Maybe.withDefault "" movie.images.backdrop
@@ -1690,6 +1923,18 @@ showMovieDetailsDialog movie maybeDetails castExpanded currentMovieIndex =
                     ]
                 ]
 
+            -- Reviews section
+            , case maybeDetails of
+                Just details ->
+                    if not (List.isEmpty details.reviews) then
+                        showReviewsSection details.reviews expandedReviews currentMovieIndex
+
+                    else
+                        text ""
+
+                Nothing ->
+                    text ""
+
             -- Cast section
             , case maybeDetails of
                 Just details ->
@@ -2007,6 +2252,9 @@ showCastMemberDetails model =
                 , children
                     [ typeSelector "div"
                         [ Css.property "scroll-snap-align" "center" ]
+                    ]
+                , Media.withMedia [ Media.only Media.screen [ Media.minWidth (px 768) ] ]
+                    [ overflow Css.hidden
                     ]
                 ]
             , id castMemberDetailsAlsoInId
