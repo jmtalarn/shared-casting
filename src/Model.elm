@@ -18,5 +18,4 @@ type alias Model =
     , error : Maybe String
     , castExpanded : Maybe MovieIndex
     , expandedReviews : List ( MovieIndex, Int )
-    , apiBase : String
     }

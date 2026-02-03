@@ -1273,23 +1273,9 @@ reviewsSectionId =
 showReviewsSection : List Review -> List ( MovieIndex, Int ) -> MovieIndex -> Html Msg
 showReviewsSection reviews expandedReviews currentMovieIndex =
     let
-        reviewsInPairs =
-            List.indexedMap Tuple.pair reviews
-                |> List.foldr
-                    (\( index, review ) acc ->
-                        case acc of
-                            [] ->
-                                [ [ ( index, review ) ] ]
-
-                            (firstPair :: rest) as pairs ->
-                                if List.length firstPair < 2 then
-                                    (( index, review ) :: firstPair) :: rest
-
-                                else
-                                    [ ( index, review ) ] :: pairs
-                    )
-                    []
-                |> List.reverse
+        -- One review per slide (small screens show one; desktop shows two side-by-side via 400px slide width)
+        reviewsAsSlides =
+            List.indexedMap (\i r -> [ ( i, r ) ]) reviews
     in
     div
         [ css
@@ -1318,40 +1304,48 @@ showReviewsSection reviews expandedReviews currentMovieIndex =
         , div
             [ css
                 [ displayFlex
-                , alignItems baseline
-                , justifyContent spaceAround
-                , marginBottom (px 32)
+                , flexDirection column
+                , Css.property "gap" "1rem"
+                , alignItems center
                 ]
             ]
-            [ miniCoverButton Backward
-            , div
+            [ div
                 [ css
                     [ displayFlex
                     , Css.property "gap" "16px"
-                    , maxWidth (pct 85)
-                    , padding2 (px 24) (px 16)
+                    , padding2 (px 16) (px 0)
                     , overflow Css.auto
                     , Css.property "scroll-snap-type" "x mandatory"
                     , Css.property "-webkit-overflow-scrolling" "touch"
                     , cursor grab
+                    , Css.width (pct 100)
+                    , minHeight (px 200)
                     , children
                         [ typeSelector "div"
                             [ Css.property "scroll-snap-align" "center" ]
                         ]
                     , Media.withMedia [ Media.only Media.screen [ Media.minWidth (px 768) ] ]
                         [ overflow Css.hidden
+                        , maxWidth (pct 85)
                         ]
                     ]
                 , id reviewsSectionId
                 ]
                 (List.map
-                    (\reviewPair ->
+                    (\reviewSlide ->
                         div
                             [ css
                                 [ displayFlex
                                 , Css.property "gap" "1rem"
-                                , Css.width (px 800)
+                                , Css.width (pct 100)
                                 , flexShrink (int 0)
+                                , minWidth (px 0)
+                                , boxSizing borderBox
+                                , padding2 (px 0) (px 8)
+                                , Media.withMedia [ Media.only Media.screen [ Media.minWidth (px 768) ] ]
+                                    [ Css.width (px 400)
+                                    , padding2 (px 0) (px 24)
+                                    ]
                                 ]
                             ]
                             (List.map
@@ -1364,12 +1358,23 @@ showReviewsSection reviews expandedReviews currentMovieIndex =
                                         ]
                                         [ showReview review expandedReviews currentMovieIndex reviewIndex ]
                                 )
-                                reviewPair
+                                reviewSlide
                             )
                     )
-                    reviewsInPairs
+                    reviewsAsSlides
                 )
-            , miniCoverButton Forward
+            , div
+                [ css
+                    [ displayFlex
+                    , alignItems center
+                    , justifyContent center
+                    , Css.property "gap" "1.5rem"
+                    , marginTop (px 8)
+                    ]
+                ]
+                [ miniCoverButton Backward
+                , miniCoverButton Forward
+                ]
             ]
         ]
 
@@ -1399,6 +1404,9 @@ showReview review expandedReviews currentMovieIndex reviewIndex =
             , padding (px 20)
             , borderRadius (px 12)
             , borderLeft3 (px 3) solid theme.colors.primary
+            , minWidth (px 0)
+            , Css.property "overflow-wrap" "break-word"
+            , Css.property "word-break" "break-word"
             ]
         ]
         [ div
@@ -1453,6 +1461,8 @@ showReview review expandedReviews currentMovieIndex reviewIndex =
                 , fontSize (rem 0.95)
                 , lineHeight (num 1.6)
                 , whiteSpace preWrap
+                , Css.property "overflow-wrap" "break-word"
+                , Css.property "word-break" "break-word"
                 ]
             ]
             [ text displayContent ]

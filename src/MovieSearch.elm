@@ -298,8 +298,13 @@ mediaTypeToString mediaType =
             "movie"
 
 
-fetchData : String -> Maybe String -> Cmd Msg
-fetchData apiBase query =
+apiBase : String
+apiBase =
+    ""
+
+
+fetchData : Maybe String -> Cmd Msg
+fetchData query =
     case query of
         Just value ->
             let
@@ -307,14 +312,14 @@ fetchData apiBase query =
                     String.trim value
 
                 url =
-                    "/search/" ++ trimmedValue
+                    apiBase ++ "/search/" ++ trimmedValue
             in
             if String.isEmpty trimmedValue then
                 Cmd.none
 
             else
                 Http.get
-                    { url = apiBase ++ url
+                    { url = url
                     , expect = Http.expectJson ReceiveResults (Json.Decode.list movieTvShowDecoder)
                     }
 
@@ -322,26 +327,26 @@ fetchData apiBase query =
             Cmd.none
 
 
-fetchDetails : String -> MovieIndex -> MovieTvShow -> Cmd Msg
-fetchDetails apiBase index movieTvShow =
+fetchDetails : MovieIndex -> MovieTvShow -> Cmd Msg
+fetchDetails index movieTvShow =
     let
         url =
-            "/get/" ++ mediaTypeToString movieTvShow.mediaType ++ "/" ++ String.fromInt movieTvShow.id
+            apiBase ++ "/get/" ++ mediaTypeToString movieTvShow.mediaType ++ "/" ++ String.fromInt movieTvShow.id
     in
     Http.get
-        { url = apiBase ++ url
+        { url = url
         , expect = Http.expectJson (ReceiveDetails index) detailsDecoder
         }
 
 
-fetchCastMemberDetails : String -> String -> Cmd Msg
-fetchCastMemberDetails apiBase id =
+fetchCastMemberDetails : String -> Cmd Msg
+fetchCastMemberDetails id =
     let
         url =
-            "/people/" ++ id
+            apiBase ++ "/people/" ++ id
     in
     Http.get
-        { url = apiBase ++ url
+        { url = url
         , expect = Http.expectJson ReceiveCastMember castMemberDetailsDecoder
         }
 

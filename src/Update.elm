@@ -218,7 +218,7 @@ update msg model =
             )
 
         DebouncedSearch ->
-            ( model, fetchData model.apiBase model.query )
+            ( model, fetchData model.query )
 
         SelectItem movie ->
             let
@@ -263,7 +263,7 @@ update msg model =
                     ( updatedModel
                     , Cmd.batch
                         [ closeDialogsCmd
-                        , fetchDetails model.apiBase index movie
+                        , fetchDetails index movie
                         , toggleDialog ("#" ++ dialogMovieDetailsId)
                         ]
                     )
@@ -292,7 +292,7 @@ update msg model =
               }
             , Cmd.batch
                 [ closeMovieDetailsCmd
-                , fetchCastMemberDetails model.apiBase <| String.fromInt id
+                , fetchCastMemberDetails <| String.fromInt id
                 ]
             )
 
