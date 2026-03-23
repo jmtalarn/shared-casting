@@ -1,22 +1,33 @@
-import { defineConfig, loadEnv } from 'vite';
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import { defineConfig } from 'vite';
 import elmPlugin from 'vite-plugin-elm';
-import * as path from 'path';
+import { VitePWA } from 'vite-plugin-pwa';
 
-export default defineConfig(({ mode }) => {
-  const env = loadEnv('tauri', process.cwd(), 'VITE_');
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const pwaManifest = JSON.parse(
+  readFileSync(resolve(__dirname, 'webmanifest.source.json'), 'utf-8'),
+);
 
-  console.log('Vite mode:', mode);
-  console.log('VITE_API_BASE_DEV:', env.VITE_API_BASE_DEV);
-
-  return {
-    plugins: [ elmPlugin() ],
-    define: {
-      __APP_ENV__: JSON.stringify(mode),
-      __API_BASE_DEV__: JSON.stringify(env.VITE_API_BASE_DEV ?? ""),
-      __API_BASE_PROD__: JSON.stringify(env.VITE_API_BASE_PROD ?? ""),
-    },
-    resolve: {
-      alias: [ { find: '@', replacement: path.resolve(__dirname, 'src') } ],
-    },
-  };
+export default defineConfig({
+  plugins: [
+    elmPlugin(),
+    ...VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['icon/*.png'],
+      manifest: pwaManifest,
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,webmanifest}'],
+        navigateFallback: '/index.html',
+      },
+      devOptions: {
+        enabled: true,
+      },
+    }),
+  ],
+  resolve: {
+    alias: [ { find: '@', replacement: resolve(__dirname, 'src') } ],
+  },
 });

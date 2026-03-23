@@ -13,12 +13,12 @@
       "dependencies": [
         "npm:@fontsource/inter@^5.1.1",
         "npm:@netlify/functions@3",
-        "npm:@tauri-apps/cli@^2.9.6",
         "npm:elm-debug-transformer@^1.2.1",
         "npm:elm-review@^2.12.0",
         "npm:elm-tooling@^1.15.1",
         "npm:netlify-cli@^23.12.3",
         "npm:vite-plugin-elm@^3.0.1",
+        "npm:vite-plugin-pwa@^1.2.0",
         "npm:vite@^6.0.5"
       ]
     }

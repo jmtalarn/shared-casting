@@ -2,7 +2,11 @@ import '@fontsource/inter'; // Defaults to weight 400
 
 import './style.css';
 
+import { registerSW } from 'virtual:pwa-register';
+
 import { Elm } from '@/Main.elm';
+
+registerSW({ immediate: true });
 
 if (process.env.NODE_ENV === 'development') {
   const ElmDebugTransform = await import('elm-debug-transformer');

@@ -14,21 +14,17 @@
     "upgrade": "elm-json upgrade && cd review && elm-json upgrade && cd ..",
     "package:remove": "elm-json uninstall",
     "netlify:dev": "netlify dev",
-    "netlify:dev:live": "netlify dev --live",
-    "tauri": "tauri",
-    "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build",
-    "tauri:android:dev": "tauri dev --target aarch64-linux-android"
+    "netlify:dev:live": "netlify dev --live"
   },
   "devDependencies": {
     "@netlify/functions": "^3.0.0",
-    "@tauri-apps/cli": "^2.9.6",
     "elm-debug-transformer": "^1.2.1",
     "elm-review": "^2.12.0",
     "elm-tooling": "^1.15.1",
     "netlify-cli": "^23.12.3",
     "vite": "^6.0.5",
-    "vite-plugin-elm": "^3.0.1"
+    "vite-plugin-elm": "^3.0.1",
+    "vite-plugin-pwa": "^1.2.0"
   },
   "dependencies": {
     "@fontsource/inter": "^5.1.1"
