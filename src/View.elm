@@ -415,16 +415,16 @@ dialogMovieSearch model =
                     ]
                 , zIndex (int 2)
                 , position fixed
-                , top (pct 5)
-                , Css.width (pct 90)
+                , top (vh 5)
+                , Css.width (vw 92)
                 , maxWidth (px 840)
-                , maxHeight (pct 90)
-
-                --, Css.height (pct 70)
+                , Css.height (vh 90)
+                , maxHeight (vh 90)
                 , theme.shadows.lg Nothing
                 , borderRadius (px 15)
                 , borderStyle Css.none
                 , margin2 (px 0) auto
+                , padding (px 0)
                 , backgroundColor theme.colors.surfaceDark
                 , color theme.colors.text
                 , overflow Css.hidden
@@ -433,7 +433,11 @@ dialogMovieSearch model =
             ]
             [ div
                 [ css
-                    []
+                    [ displayFlex
+                    , flexDirection column
+                    , Css.height (pct 100)
+                    , minHeight (px 0)
+                    ]
                 ]
                 [ div
                     [ css
@@ -442,6 +446,7 @@ dialogMovieSearch model =
                         , justifyContent end
                         , padding (px 4)
                         , Css.height (px 64)
+                        , flexShrink (int 0)
                         ]
                     ]
                     [ button
@@ -471,6 +476,7 @@ dialogMovieSearch model =
                         , justifyContent spaceAround
                         , padding2 (px 4) (px 16)
                         , Css.height (px 64)
+                        , flexShrink (int 0)
                         ]
                     ]
                     [ input
@@ -511,7 +517,7 @@ dialogMovieSearch model =
                     Just errorMessage ->
                         div
                             [ css
-                                [ minHeight (px 64), padding (px 64), maxHeight <| Css.calc (vh 90) minus (calc (px 64) plus (px 64)), overflow auto ]
+                                [ flex (int 1), minHeight (px 0), padding (px 64), overflowY auto ]
                             ]
                             [ h3 [ css [ color theme.colors.error, textAlign center ] ] [ text "Error" ]
                             , p
@@ -521,7 +527,7 @@ dialogMovieSearch model =
                             ]
 
                     Nothing ->
-                        div [ css [ minHeight (px 64), Css.maxHeight <| Css.calc (vh 90) minus (calc (px 64) plus (px 64)), overflowY auto ] ] [ showResults model.searchResult ]
+                        div [ css [ flex (int 1), minHeight (px 0), overflowY auto ] ] [ showResults model.searchResult ]
                 ]
             ]
         ]
@@ -573,6 +579,7 @@ viewItem item =
     in
     li
         [ resultItemStyle
+        , tabindex 0
         , onClick (SelectItem item)
         ]
         [ div
@@ -1101,7 +1108,7 @@ mainStyle =
     css
         [ backgroundColor theme.colors.surface
         , color theme.colors.text
-        , minHeight (calc (Css.pct 100) minus (rem 4))
+        , minHeight (calc (vh 100) minus (rem 4))
         ]
 
 
@@ -1129,17 +1136,16 @@ dialogCastMemberDetails model =
                     ]
                 , zIndex (int 2)
                 , position fixed
-                , top (pct 5)
-                , Css.width (pct 90)
-
-                --, maxWidth (px 840)
-                , maxHeight (pct 90)
-
-                --, Css.height (pct 70)
+                , top (vh 5)
+                , Css.width (vw 94)
+                , maxWidth (px 1400)
+                , Css.height (vh 90)
+                , maxHeight (vh 90)
                 , theme.shadows.lg Nothing
                 , borderRadius (px 15)
                 , borderStyle Css.none
                 , margin2 (px 0) auto
+                , padding (px 0)
                 , backgroundColor theme.colors.surfaceDark
                 , color theme.colors.text
                 , overflow Css.hidden
@@ -1148,7 +1154,11 @@ dialogCastMemberDetails model =
             ]
             [ div
                 [ css
-                    []
+                    [ displayFlex
+                    , flexDirection column
+                    , Css.height (pct 100)
+                    , minHeight (px 0)
+                    ]
                 ]
                 [ div
                     [ css
@@ -1157,6 +1167,7 @@ dialogCastMemberDetails model =
                         , justifyContent end
                         , padding (px 4)
                         , Css.height (px 64)
+                        , flexShrink (int 0)
                         ]
                     ]
                     [ button
@@ -1183,7 +1194,7 @@ dialogCastMemberDetails model =
                     Just errorMessage ->
                         div
                             [ css
-                                [ minHeight (px 64), padding (px 64), maxHeight <| Css.calc (vh 90) minus (px 64), overflow auto ]
+                                [ flex (int 1), minHeight (px 0), padding (px 64), overflowY auto ]
                             ]
                             [ h3 [ css [ color theme.colors.error, textAlign center ] ] [ text "Error" ]
                             , p
@@ -1193,7 +1204,7 @@ dialogCastMemberDetails model =
                             ]
 
                     Nothing ->
-                        div [ css [ minHeight (Css.px 64), Css.maxHeight <| Css.calc (Css.vh 90) minus (calc (Css.px 64) plus (Css.px 64)), overflowY auto ] ] <| showCastMemberDetails model
+                        div [ css [ flex (int 1), minHeight (px 0), overflowY auto ] ] <| showCastMemberDetails model
                 ]
             ]
         ]
@@ -1325,8 +1336,8 @@ showReviewsSection reviews expandedReviews currentMovieIndex =
                             [ Css.property "scroll-snap-align" "center" ]
                         ]
                     , Media.withMedia [ Media.only Media.screen [ Media.minWidth (px 768) ] ]
-                        [ overflow Css.hidden
-                        , maxWidth (pct 85)
+                        [ overflowX auto
+                        , overflowY Css.hidden
                         ]
                     ]
                 , id reviewsSectionId
@@ -2243,29 +2254,19 @@ showCastMemberDetails model =
     , div
         [ css
             [ displayFlex
-            , alignItems baseline
-            , justifyContent spaceAround
+            , flexDirection column
+            , alignItems center
             , marginBottom (px 32)
+            , Css.width (pct 100)
             ]
         ]
-        [ miniCoverButton Backward
-        , div
+        [ div
             [ css
                 [ displayFlex
-                , Css.property "gap" "16px"
-                , maxWidth (pct 85)
-                , padding2 (px 24) (px 16)
-                , overflow Css.auto
-                , Css.property "scroll-snap-type" "x mandatory"
-                , Css.property "-webkit-overflow-scrolling" "touch"
-                , cursor grab
-                , children
-                    [ typeSelector "div"
-                        [ Css.property "scroll-snap-align" "center" ]
-                    ]
-                , Media.withMedia [ Media.only Media.screen [ Media.minWidth (px 768) ] ]
-                    [ overflow Css.hidden
-                    ]
+                , flexWrap Css.wrap
+                , justifyContent center
+                , Css.width (pct 100)
+                , padding2 (px 8) (px 16)
                 ]
             , id castMemberDetailsAlsoInId
             ]
@@ -2276,7 +2277,7 @@ showCastMemberDetails model =
                 Just castMember ->
                     List.map
                         (\( movieTvShow, character ) ->
-                            div [ css [ Css.width (px miniCoverWidth) ] ]
+                            div [ css [ Css.width (px miniCoverWidth), margin (px 8), flexShrink (int 0) ] ]
                                 [ movieTvShowMiniCover movieTvShow
                                 , div [ css [ fontSize Css.small, fontWeight bold ] ] [ text movieTvShow.title ]
                                 , div [ css [ fontSize Css.small ] ] [ formatCharacter character Nothing ]
@@ -2284,7 +2285,6 @@ showCastMemberDetails model =
                         )
                         castMember.cast
             )
-        , miniCoverButton Forward
         ]
     ]
 
@@ -2375,6 +2375,7 @@ movieTvShowMiniCover movieTvShow =
                     ]
                 ]
             , title hintText
+            , tabindex 0
             , onClick (SelectItem movieTvShow)
             ]
             [ img
