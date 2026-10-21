@@ -1,0 +1,13 @@
+{
+  "id": "com.sharedcasting.app",
+  "version": "1.0.0",
+  "vendor": "Shared Casting",
+  "type": "web",
+  "main": "index.html",
+  "title": "Shared Casting",
+  "icon": "icon.png",
+  "largeIcon": "largeIcon.png",
+  "bgColor": "#080f19",
+  "iconColor": "#d4af37",
+  "splashBackground": "#080f19"
+}

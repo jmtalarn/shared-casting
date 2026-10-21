@@ -10,7 +10,7 @@ import Model exposing (Model)
 import Msg exposing (..)
 import Phosphor exposing (IconWeight(..))
 import Title exposing (svgTitle)
-import Update exposing (update)
+import Update exposing (update, webosBack)
 import View exposing (dialogCastMemberDetails, dialogMovieDetails, dialogMovieSearch, footerBand, mainStyle, pageHeader, showCastSection, showMovie, twoColumnsCssLayout)
 
 
@@ -55,7 +55,7 @@ init _ =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.none
+    webosBack (\_ -> WebosBack)
 
 
 

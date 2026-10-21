@@ -14,7 +14,8 @@
     "upgrade": "elm-json upgrade && cd review && elm-json upgrade && cd ..",
     "package:remove": "elm-json uninstall",
     "netlify:dev": "netlify dev",
-    "netlify:dev:live": "netlify dev --live"
+    "netlify:dev:live": "netlify dev --live",
+    "webos:package": "ares-package webos -o webos/out"
   },
   "devDependencies": {
     "@netlify/functions": "^3.0.0",

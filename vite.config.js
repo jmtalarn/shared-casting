@@ -12,6 +12,11 @@ const pwaManifest = JSON.parse(
 );
 
 export default defineConfig({
+  // 65UP77006LB runs webOS 6 (Chromium 79). Newer syntax would fail to parse there.
+  build: {
+    target: 'chrome79',
+    cssTarget: 'chrome79',
+  },
   plugins: [
     elmPlugin(),
     ...VitePWA({

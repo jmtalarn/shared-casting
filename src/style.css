@@ -55,3 +55,8 @@ body, html{
     /*width: 100vw; */
     scroll-behavior: smooth; 
 }
+
+html.webos {
+    zoom: 1.6;
+    background: #080f19;
+}
