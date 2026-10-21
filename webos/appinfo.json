@@ -9,5 +9,5 @@
   "largeIcon": "largeIcon.png",
   "bgColor": "#080f19",
   "iconColor": "#d4af37",
-  "splashBackground": "#080f19"
+  "requiredACG": []
 }
