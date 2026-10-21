@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@netlify/functions": "^3.0.0",
+    "@webos-tools/cli": "^3.2.6",
     "elm-debug-transformer": "^1.2.1",
     "elm-review": "^2.12.0",
     "elm-tooling": "^1.15.1",
