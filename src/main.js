@@ -32,6 +32,10 @@ app.ports.toggleDialog.subscribe(dialogSelector => {
       dialog.close();
     } else {
       dialog.showModal();
+      const focusable = dialog.querySelector('input, button, [tabindex="0"]');
+      if (focusable) {
+        focusable.focus();
+      }
     }
   }
 });
@@ -52,3 +56,150 @@ window.addEventListener('keydown', event => {
   event.preventDefault();
   app.ports.webosBack.send(null);
 });
+
+if (isWebOS) {
+  window.addEventListener('keydown', event => {
+    const direction = arrowDirection(event);
+    if (direction) {
+      if (isTextEntry(document.activeElement) && (direction.x !== 0)) {
+        return;
+      }
+      event.preventDefault();
+      moveFocus(direction.x, direction.y);
+      return;
+    }
+
+    const isEnter = event.keyCode === 13 || event.key === 'Enter';
+    if (!isEnter) {
+      return;
+    }
+    const current = document.activeElement;
+    if (!current || current === document.body || current.tagName === 'BUTTON' || current.tagName === 'A' || current.tagName === 'INPUT') {
+      return;
+    }
+    event.preventDefault();
+    current.click();
+  });
+
+  setTimeout(() => {
+    const first = document.querySelector('button');
+    if (first) {
+      first.focus();
+    }
+  }, 0);
+}
+
+function arrowDirection(event) {
+  if (event.keyCode === 37 || event.key === 'ArrowLeft') {
+    return { x: -1, y: 0 };
+  }
+  if (event.keyCode === 38 || event.key === 'ArrowUp') {
+    return { x: 0, y: -1 };
+  }
+  if (event.keyCode === 39 || event.key === 'ArrowRight') {
+    return { x: 1, y: 0 };
+  }
+  if (event.keyCode === 40 || event.key === 'ArrowDown') {
+    return { x: 0, y: 1 };
+  }
+  return null;
+}
+
+function isTextEntry(element) {
+  return !!element && (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA');
+}
+
+function focusRoot() {
+  const openDialog = document.querySelector('dialog[open]');
+  return openDialog || document.body;
+}
+
+function isFocusable(element) {
+  if (!element || element.disabled || element.getAttribute('tabindex') === '-1') {
+    return false;
+  }
+  const style = window.getComputedStyle(element);
+  if (style.display === 'none' || style.visibility === 'hidden') {
+    return false;
+  }
+  const rect = element.getBoundingClientRect();
+  return rect.width > 1 && rect.height > 1;
+}
+
+function focusableElements() {
+  return Array.from(focusRoot().querySelectorAll('button, a[href], input, select, textarea, [tabindex="0"]')).filter(isFocusable);
+}
+
+function centerOf(rect) {
+  return {
+    x: rect.left + rect.width / 2,
+    y: rect.top + rect.height / 2,
+  };
+}
+
+function moveFocus(dx, dy) {
+  const items = focusableElements();
+  if (items.length === 0) {
+    return;
+  }
+
+  const current = document.activeElement;
+  if (!items.includes(current)) {
+    focusElement(items[0]);
+    return;
+  }
+
+  const from = centerOf(current.getBoundingClientRect());
+  let best = null;
+  let bestScore = Infinity;
+
+  items.forEach(item => {
+    if (item === current) {
+      return;
+    }
+    const to = centerOf(item.getBoundingClientRect());
+    const deltaX = to.x - from.x;
+    const deltaY = to.y - from.y;
+    if (dx !== 0 && Math.sign(deltaX) !== dx) {
+      return;
+    }
+    if (dy !== 0 && Math.sign(deltaY) !== dy) {
+      return;
+    }
+    const primary = dx !== 0 ? Math.abs(deltaX) : Math.abs(deltaY);
+    const secondary = dx !== 0 ? Math.abs(deltaY) : Math.abs(deltaX);
+    if (primary < 4) {
+      return;
+    }
+    const score = primary + secondary * 2;
+    if (score < bestScore) {
+      bestScore = score;
+      best = item;
+    }
+  });
+
+  if (best) {
+    focusElement(best);
+    return;
+  }
+
+  const scroller = scrollParent(current);
+  scroller.scrollBy({ left: dx * 180, top: dy * 180 });
+}
+
+function focusElement(element) {
+  element.focus();
+  element.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+}
+
+function scrollParent(element) {
+  let parent = element.parentElement;
+  while (parent) {
+    const style = window.getComputedStyle(parent);
+    if (/(auto|scroll)/.test(style.overflowY) || /(auto|scroll)/.test(style.overflowX)) {
+      return parent;
+    }
+    parent = parent.parentElement;
+  }
+  return document.scrollingElement || document.body;
+}

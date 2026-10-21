@@ -50,13 +50,26 @@ input, button, textarea, select{
     }
 }
 
-body, html{
-    height: 100vh; 
-    /*width: 100vw; */
-    scroll-behavior: smooth; 
+html, body {
+    min-height: 100vh;
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background: #080f19;
+    scroll-behavior: smooth;
 }
 
-html.webos {
-    zoom: 1.6;
-    background: #080f19;
+dialog[open] {
+    display: flex;
+    flex-direction: column;
+}
+
+html.webos,
+html.webos body {
+    cursor: default;
+}
+
+html.webos :focus {
+    outline: 3px solid #d4af37;
+    outline-offset: 3px;
 }
