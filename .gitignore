@@ -39,3 +39,5 @@ repl-temp-*
 .env
 .env.*
 
+webos/out
+

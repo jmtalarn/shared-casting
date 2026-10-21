@@ -2101,7 +2101,7 @@ showCastMemberDetails model =
             , minHeight (px 64)
             , flexWrap Css.wrap
             , justifyContent center
-            , Css.property "overflow" "clip"
+            , overflow Css.hidden
             ]
         ]
         (case maybeCastMember of

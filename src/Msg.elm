@@ -114,6 +114,7 @@ type Msg
     | ImageGalleryMsg Gallery.Msg
     | ReceiveCastMember (Result Http.Error CastMemberDetails)
     | HideDialog String
+    | WebosBack
     | Scroll AlsoInDirection
     | FocusOnInput
     | NoOp

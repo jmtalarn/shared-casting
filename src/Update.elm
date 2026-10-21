@@ -21,6 +21,9 @@ port toggleDialog : String -> Cmd msg
 port scroll : ( String, Int ) -> Cmd msg
 
 
+port webosBack : (() -> msg) -> Sub msg
+
+
 
 -- UPDATE
 
@@ -176,6 +179,14 @@ update msg model =
             ( cleanDialogData model
             , toggleDialog ("#" ++ dialogId)
             )
+
+        WebosBack ->
+            case model.openedDialog of
+                Just dialogId ->
+                    update (HideDialog dialogId) model
+
+                Nothing ->
+                    ( model, Cmd.none )
 
         FocusOnInput ->
             ( model, Task.attempt (\_ -> NoOp) (Dom.focus dialogMovieSearchInputId) )
