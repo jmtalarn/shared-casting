@@ -87,6 +87,19 @@ if (isWebOS) {
       first.focus();
     }
   }, 0);
+
+  window.addEventListener('wheel', event => {
+    const delta = event.deltaY || (event.wheelDelta ? -event.wheelDelta : 0);
+    if (!delta) {
+      return;
+    }
+    const nested = nestedScroller(event.target, delta);
+    if (nested) {
+      return;
+    }
+    event.preventDefault();
+    document.body.scrollTop += delta;
+  }, { passive: false });
 }
 
 function arrowDirection(event) {
@@ -189,7 +202,44 @@ function moveFocus(dx, dy) {
 
 function focusElement(element) {
   element.focus();
-  element.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  reveal(element);
+}
+
+function reveal(element) {
+  const scroller = scrollParent(element);
+  const elementRect = element.getBoundingClientRect();
+  const scrollerRect = scroller === document.body || scroller === document.documentElement
+    ? { top: 0, bottom: window.innerHeight, left: 0, right: window.innerWidth }
+    : scroller.getBoundingClientRect();
+  const margin = 48;
+
+  if (elementRect.top < scrollerRect.top + margin) {
+    scroller.scrollTop += elementRect.top - (scrollerRect.top + margin);
+  } else if (elementRect.bottom > scrollerRect.bottom - margin) {
+    scroller.scrollTop += elementRect.bottom - (scrollerRect.bottom - margin);
+  }
+
+  if (elementRect.left < scrollerRect.left + margin) {
+    scroller.scrollLeft += elementRect.left - (scrollerRect.left + margin);
+  } else if (elementRect.right > scrollerRect.right - margin) {
+    scroller.scrollLeft += elementRect.right - (scrollerRect.right - margin);
+  }
+}
+
+function nestedScroller(target, deltaY) {
+  let parent = target instanceof Element ? target : null;
+  while (parent && parent !== document.body) {
+    const style = window.getComputedStyle(parent);
+    if (/(auto|scroll)/.test(style.overflowY) && parent.scrollHeight > parent.clientHeight + 1) {
+      const atTop = parent.scrollTop <= 0 && deltaY < 0;
+      const atBottom = parent.scrollTop + parent.clientHeight >= parent.scrollHeight - 1 && deltaY > 0;
+      if (!atTop && !atBottom) {
+        return parent;
+      }
+    }
+    parent = parent.parentElement;
+  }
+  return null;
 }
 
 function scrollParent(element) {
